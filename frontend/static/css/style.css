@@ -1,0 +1,507 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: "Segoe UI", sans-serif;
+}
+
+body {
+    background: #f5f7fb;
+    color: #333;
+}
+
+.app {
+    display: flex;
+    min-height: 100vh;
+}
+
+/* Sidebar */
+.sidebar {
+    width: 240px;
+    background: #ffffff;
+    border-right: 1px solid #e0e0e0;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+}
+
+.sidebar h2 {
+    font-size: 22px;
+    color: #2b7cff;
+    margin-bottom: 25px;
+}
+
+.sidebar ul {
+    list-style: none;
+}
+
+.sidebar li {
+    padding: 10px 12px;
+    margin-bottom: 10px;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+.sidebar li:hover,
+.sidebar .active {
+    background: #e7f0ff;
+    color: #2b7cff;
+}
+
+.sidebar-logout {
+    margin-top: auto;
+    padding: 12px 14px;
+    color: #e63946;
+    cursor: pointer;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    border-radius: 10px;
+    transition: all 0.3s ease;
+    border: 1px solid transparent;
+}
+
+.sidebar-logout:hover {
+    background: #fff5f5;
+    border-color: #fee2e2;
+    transform: translateX(5px);
+    color: #c53030;
+    box-shadow: 0 4px 12px rgba(230, 57, 70, 0.1);
+}
+
+.sidebar-logout::after {
+    content: "🚪";
+    font-size: 18px;
+    margin-left: auto;
+}
+
+/* Content */
+.content {
+    flex: 1;
+    padding: 30px;
+}
+
+/* Cards */
+.card {
+    background: #ffffff;
+    padding: 20px;
+    border-radius: 10px;
+    margin-bottom: 20px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+/* Buttons */
+.btn {
+    background: #2b7cff;
+    color: white;
+    border: none;
+    padding: 10px 18px;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+/* Forms */
+input,
+select,
+textarea {
+    width: 100%;
+    padding: 10px;
+    margin-top: 6px;
+    margin-bottom: 14px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+}
+
+/* Status */
+.status {
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+}
+
+.pending {
+    background: #fff3cd;
+}
+
+.progress {
+    background: #cfe2ff;
+}
+
+.resolved {
+    background: #d1e7dd;
+}
+
+/* TOP BAR */
+.topbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.logout-btn {
+    background: #f2f2f2;
+    border: none;
+    padding: 8px 14px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 500;
+}
+
+/* STAT BOXES */
+.stats-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 18px;
+    margin: 20px 0 30px;
+}
+
+.stat-box {
+    padding: 18px;
+    border-radius: 14px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.06);
+}
+
+.stat-box p {
+    font-size: 14px;
+    color: #666;
+}
+
+.stat-box h2 {
+    font-size: 26px;
+    margin: 6px 0;
+}
+
+.stat-box span {
+    font-size: 14px;
+    font-weight: 500;
+}
+
+/* COLORS */
+.total {
+    background: #eef4ff;
+    border: 1px solid #cfe0ff;
+}
+
+.total span {
+    color: #2b6cff;
+}
+
+.pending {
+    background: #fff6e6;
+    border: 1px solid #ffe0b3;
+}
+
+.pending span {
+    color: #f0a000;
+}
+
+.progress {
+    background: #fff0e6;
+    border: 1px solid #ffd1b3;
+}
+
+.progress span {
+    color: #ff7a00;
+}
+
+.resolved {
+    background: #eaf8ef;
+    border: 1px solid #c7efd7;
+}
+
+.resolved span {
+    color: #22a75a;
+}
+
+/* EXTRA INFO */
+.grid-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+}
+
+.simple-list {
+    list-style: none;
+    padding: 0;
+    margin-top: 10px;
+}
+
+.simple-list li {
+    padding: 6px 0;
+    font-size: 14px;
+}
+
+.logout-btn {
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    padding: 8px 16px;
+    border-radius: 10px;
+    font-size: 14px;
+    cursor: pointer;
+}
+
+.logout-btn:hover {
+    background: #f3f4f6;
+}
+
+.approval-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 14px 16px;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    margin-top: 12px;
+    background: #ffffff;
+}
+
+.approval-item p {
+    margin: 4px 0 0;
+    font-size: 13px;
+    color: #6b7280;
+}
+
+.approval-item .count {
+    font-size: 20px;
+    font-weight: 600;
+}
+
+/* PANEL BORDER COLORS */
+.panel.ongoing-panel {
+    border: 2px solid #f3d19c;
+}
+
+.panel.completed-panel {
+    border: 2px solid #b7e4c7;
+}
+
+/* PANEL TITLES */
+.panel-title {
+    font-size: 18px;
+    margin-bottom: 14px;
+    font-weight: 600;
+}
+
+.ongoing-title {
+    color: #b45309;
+}
+
+.completed-title {
+    color: #1f7a4f;
+}
+
+/* COMPLAINT CARD REFINEMENT */
+.complaint {
+    border-left: 5px solid #e5e7eb;
+    transition: box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.complaint:hover {
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+    transform: translateY(-2px);
+}
+
+/* STATUS-BASED LEFT BORDER */
+.complaint[data-status="Pending"] {
+    border-left-color: #f59e0b;
+}
+
+.complaint[data-status="In Progress"] {
+    border-left-color: #f97316;
+}
+
+.complaint[data-status="Resolved"] {
+    border-left-color: #22c55e;
+}
+
+.topbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.logout {
+    padding: 8px 16px;
+    border: none;
+    background: #eee;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+.list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.complaint-card {
+    background: #fff;
+    border-radius: 12px;
+    padding: 16px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+}
+
+.row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+}
+
+.title {
+    font-weight: 600;
+}
+
+.meta {
+    font-size: 13px;
+    color: #666;
+}
+
+.badge {
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+}
+
+.badge.pending {
+    background: #fff3cd;
+    color: #856404;
+}
+
+.badge.progress {
+    background: #cce5ff;
+    color: #004085;
+}
+
+.badge.resolved {
+    background: #d4edda;
+    color: #155724;
+}
+
+.view-btn {
+    margin-top: 10px;
+    background: #0d6efd;
+    color: white;
+    border: none;
+    padding: 8px 14px;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+/* MODAL */
+.modal {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.4);
+    display: none;
+    justify-content: center;
+    align-items: center;
+}
+
+.modal-box {
+    background: #fff;
+    padding: 20px;
+    border-radius: 12px;
+    width: 420px;
+}
+
+
+/* Modal */
+.modal {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, .4);
+    z-index: 1000;
+}
+
+.modal-box {
+    width: 420px;
+    background: #fff;
+    margin: 8% auto;
+    padding: 22px;
+    border-radius: 14px;
+}
+
+.modal-box h3 {
+    margin-bottom: 16px;
+}
+
+.modal-box label {
+    font-size: 14px;
+    color: #555;
+    margin-top: 10px;
+    display: block;
+}
+
+.modal-box input,
+.modal-box textarea,
+.modal-box select {
+    width: 100%;
+    padding: 10px;
+    margin-top: 6px;
+    border-radius: 8px;
+    border: 1px solid #ddd;
+}
+
+.modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 18px;
+}
+
+.btn-primary {
+    background: #2563eb;
+    color: #fff;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 8px;
+}
+
+.btn-outline {
+    background: #f1f5f9;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 8px;
+}
+
+.add-complaint-btn {
+    background: #ffffff;
+    border: 1px solid #d0d7de;
+    padding: 10px 16px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: #1f2937;
+    transition: background 0.2s ease, box-shadow 0.2s ease;
+}
+
+.add-complaint-btn:hover {
+    background: #f8f9fa;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+}
+
+.add-complaint-btn .plus {
+    font-size: 18px;
+    line-height: 1;
+}
+
+.toggle-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 12px;
+    font-size: 14px;
+    color: #444;
+}
+
+.toggle-row input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
+}

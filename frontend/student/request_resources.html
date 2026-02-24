@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Request Resources</title>
+    <link rel="stylesheet" href="../static/css/style.css">
+    <script src="../static/js/main.js"></script>
+
+    <style>
+        .resource-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .resource-card {
+            border: 1px solid #dbe4ff;
+            border-radius: 10px;
+            padding: 14px;
+            cursor: pointer;
+            background: #ffffff;
+        }
+
+        .resource-card:hover {
+            background: #f5f9ff;
+        }
+
+        .info-box {
+            background: #e7f3ff;
+            padding: 14px;
+            border-radius: 8px;
+            border-left: 6px solid #2b7cff;
+            margin-bottom: 20px;
+        }
+
+        .urgency {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .urgency div {
+            flex: 1;
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+            text-align: center;
+            cursor: pointer;
+        }
+
+        .urgency .active {
+            background: #e6f9fb;
+            border-color: #17a2b8;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="app">
+
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <h2>HostelHub</h2>
+            <p class="portal-label">Student Portal</p>
+
+            <ul>
+                <li onclick="location.href='dashboard.html'">Dashboard</li>
+                <li onclick="location.href='complaints.html'">My Complaints</li>
+                <li onclick="location.href='request_resources.html'">Request Resources</li>
+                <li onclick="location.href='notices.html'">Notices</li>
+                <li onclick="location.href='emergency.html'">Emergency</li>
+            </ul>
+            <div class="sidebar-logout" onclick="logout()">
+                Logout
+            </div>
+        </div>
+
+
+
+        <!-- Content -->
+        <div class="content">
+
+            <h2>Request Hostel Resources</h2>
+            <p style="color:#666;">Request furniture, utilities, or other resources for your room</p>
+
+            <div class="info-box">
+                <b>How it works</b><br>
+                Submit your request and the admin team will review it. You’ll be notified once approved.
+            </div>
+
+            <h4>Select Resource</h4>
+
+            <div class="resource-grid">
+                <div class="resource-card"><b>Mattress Replacement</b><br><small>Furniture</small></div>
+                <div class="resource-card"><b>Desk Lamp</b><br><small>Electrical</small></div>
+                <div class="resource-card"><b>Study Chair</b><br><small>Furniture</small></div>
+                <div class="resource-card"><b>Dustbin</b><br><small>Utilities</small></div>
+                <div class="resource-card"><b>Curtains</b><br><small>Utilities</small></div>
+                <div class="resource-card"><b>Clothes Hanger</b><br><small>Utilities</small></div>
+            </div>
+
+            <label>Quantity</label>
+            <input type="number" value="1">
+            <small>Maximum 5 items per request</small>
+
+            <h4 style="margin-top:20px;">Urgency Level</h4>
+            <div class="urgency">
+                <div class="active">
+                    <b>Normal</b><br>
+                    <small>7–10 days</small>
+                </div>
+                <div>
+                    <b>Urgent</b><br>
+                    <small>2–3 days</small>
+                </div>
+            </div>
+
+            <label>Reason for Request</label>
+            <textarea placeholder="Explain why you need this resource..."></textarea>
+
+            <button class="btn" style="width:100%;">Submit Request</button>
+
+            <div class="card" style="margin-top:25px;">
+                <h3>My Recent Requests</h3>
+
+                <p><b>Mattress Replacement</b> – <span class="status resolved">Approved</span></p>
+                <p><b>Desk Lamp</b> – <span class="status pending">Pending</span></p>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        window.onload = function () {
+            syncSidebarSettings();
+        }
+    </script>
+</body>
+
+</html>

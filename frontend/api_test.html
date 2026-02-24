@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>API Test - HostelHub</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            color: #2b7cff;
+        }
+
+        button {
+            background: #2b7cff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+
+        button:hover {
+            background: #1a5acc;
+        }
+
+        .output {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 20px;
+            white-space: pre-wrap;
+            font-family: monospace;
+            font-size: 12px;
+        }
+
+        .success {
+            color: #28a745;
+        }
+
+        .error {
+            color: #dc3545;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>🧪 HostelHub API Test</h1>
+        <p>Test the backend API integration</p>
+
+        <h3>1. Test Login</h3>
+        <button onclick="testLogin()">Login as Student</button>
+        <button onclick="testSupervisorLogin()">Login as Supervisor</button>
+        <button onclick="testAdminLogin()">Login as Admin</button>
+
+        <h3>2. Test Complaints (Requires Login)</h3>
+        <button onclick="getComplaints()">Get All Complaints</button>
+        <button onclick="createComplaint()">Create Test Complaint</button>
+
+        <h3>3. Test Workers (Requires Login)</h3>
+        <button onclick="getWorkers()">Get All Workers</button>
+
+        <h3>4. Test Notices (Requires Login)</h3>
+        <button onclick="getNotices()">Get All Notices</button>
+
+        <div id="output" class="output">Click a button to test the API...</div>
+    </div>
+
+    <script src="static/js/main.js"></script>
+    <script>
+        const output = document.getElementById('output');
+
+        function log(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            const className = type === 'success' ? 'success' : type === 'error' ? 'error' : '';
+            output.innerHTML += `<span class="${className}">[${timestamp}] ${message}</span>\n`;
+            output.scrollTop = output.scrollHeight;
+        }
+
+        async function testLogin() {
+            log('Testing login with student1...');
+            try {
+                const response = await apiCall('auth/login/', 'POST', {
+                    username: 'student1',
+                    password: 'password123'
+                });
+
+                if (response && response.token) {
+                    localStorage.setItem('token', response.token);
+                    localStorage.setItem('user', JSON.stringify(response.user));
+                    log('✅ Login successful!', 'success');
+                    log(`Token: ${response.token.substring(0, 20)}...`);
+                    log(`User: ${response.user.username} (${response.user.role})`);
+                    log(`Room: ${response.user.block} - ${response.user.room_number}`);
+                } else {
+                    log('❌ Login failed!', 'error');
+                }
+            } catch (e) {
+                log('❌ Error: ' + e.message, 'error');
+            }
+        }
+
+        async function testSupervisorLogin() {
+            log('Testing login with supervisor1...');
+            try {
+                const response = await apiCall('auth/login/', 'POST', {
+                    username: 'supervisor1',
+                    password: 'password123'
+                });
+
+                if (response && response.token) {
+                    localStorage.setItem('token', response.token);
+                    localStorage.setItem('user', JSON.stringify(response.user));
+                    log('✅ Login successful!', 'success');
+                    log(`User: ${response.user.username} (${response.user.role})`);
+                } else {
+                    log('❌ Login failed!', 'error');
+                }
+            } catch (e) {
+                log('❌ Error: ' + e.message, 'error');
+            }
+        }
+
+        async function testAdminLogin() {
+            log('Testing login with admin...');
+            try {
+                const response = await apiCall('auth/login/', 'POST', {
+                    username: 'admin',
+                    password: 'admin123'
+                });
+
+                if (response && response.token) {
+                    localStorage.setItem('token', response.token);
+                    localStorage.setItem('user', JSON.stringify(response.user));
+                    log('✅ Login successful!', 'success');
+                    log(`User: ${response.user.username} (${response.user.role})`);
+                } else {
+                    log('❌ Login failed!', 'error');
+                }
+            } catch (e) {
+                log('❌ Error: ' + e.message, 'error');
+            }
+        }
+
+        async function getComplaints() {
+            log('Fetching complaints...');
+            try {
+                const complaints = await apiCall('complaints/', 'GET');
+                if (complaints) {
+                    log(`✅ Found ${complaints.length} complaints`, 'success');
+                    complaints.forEach((c, i) => {
+                        log(`  ${i + 1}. ${c.title} - ${c.status} (Priority: ${c.priority})`);
+                    });
+                } else {
+                    log('❌ Failed to fetch complaints', 'error');
+                }
+            } catch (e) {
+                log('❌ Error: ' + e.message, 'error');
+            }
+        }
+
+        async function createComplaint() {
+            log('Creating test complaint...');
+            try {
+                const complaint = await apiCall('complaints/', 'POST', {
+                    title: 'Test Complaint - ' + new Date().toLocaleTimeString(),
+                    description: 'This is a test complaint created via API',
+                    room: 'Block A - Room 204',
+                    priority: 'Medium'
+                });
+
+                if (complaint) {
+                    log('✅ Complaint created successfully!', 'success');
+                    log(`  ID: ${complaint.id}`);
+                    log(`  Title: ${complaint.title}`);
+                    log(`  Status: ${complaint.status}`);
+                } else {
+                    log('❌ Failed to create complaint', 'error');
+                }
+            } catch (e) {
+                log('❌ Error: ' + e.message, 'error');
+            }
+        }
+
+        async function getWorkers() {
+            log('Fetching workers...');
+            try {
+                const workers = await apiCall('workers/', 'GET');
+                if (workers) {
+                    log(`✅ Found ${workers.length} workers`, 'success');
+                    workers.forEach((w, i) => {
+                        log(`  ${i + 1}. ${w.name} - ${w.skill} (${w.is_available ? 'Available' : 'Busy'})`);
+                    });
+                } else {
+                    log('❌ Failed to fetch workers', 'error');
+                }
+            } catch (e) {
+                log('❌ Error: ' + e.message, 'error');
+            }
+        }
+
+        async function getNotices() {
+            log('Fetching notices...');
+            try {
+                const notices = await apiCall('notices/', 'GET');
+                if (notices) {
+                    log(`✅ Found ${notices.length} notices`, 'success');
+                    notices.forEach((n, i) => {
+                        log(`  ${i + 1}. ${n.title}`);
+                    });
+                } else {
+                    log('❌ Failed to fetch notices', 'error');
+                }
+            } catch (e) {
+                log('❌ Error: ' + e.message, 'error');
+            }
+        }
+
+        // Check if already logged in
+        const token = localStorage.getItem('token');
+        if (token) {
+            const user = JSON.parse(localStorage.getItem('user'));
+            log(`Already logged in as: ${user.username} (${user.role})`, 'success');
+        } else {
+            log('Not logged in. Please login first.');
+        }
+    </script>
+</body>
+
+</html>

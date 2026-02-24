@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Admin Dashboard | HostelHub</title>
+    <link rel="stylesheet" href="../static/css/style.css">
+    <script src="../static/js/main.js"></script>
+    <style>
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 25px;
+            margin-top: 25px;
+        }
+
+        .metric-card,
+        .activity-card {
+            background: #fff;
+            padding: 20px;
+            border-radius: 14px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            margin-bottom: 25px;
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 12px;
+            border-bottom: 2px solid #f8fafc;
+        }
+
+        .card-header h3 {
+            font-size: 16px;
+            color: #1e293b;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        /* Efficiency Section */
+        .efficiency-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .efficiency-box {
+            background: #f8fafc;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .efficiency-box b {
+            display: block;
+            font-size: 20px;
+            color: #2b7cff;
+        }
+
+        .efficiency-box span {
+            font-size: 12px;
+            color: #64748b;
+        }
+
+        /* Heatmap Section */
+        .heatmap-item {
+            margin-bottom: 15px;
+        }
+
+        .heatmap-label {
+            display: flex;
+            justify-content: space-between;
+            font-size: 13px;
+            margin-bottom: 6px;
+        }
+
+        .bar-bg {
+            background: #f1f5f9;
+            height: 8px;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .bar-fill {
+            height: 100%;
+            background: #2b7cff;
+            border-radius: 4px;
+        }
+
+        /* Upcoming Tasks */
+        .task-item {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 12px 0;
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        .task-date {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            min-width: 45px;
+            text-align: center;
+            padding: 5px;
+        }
+
+        .task-date b {
+            display: block;
+            font-size: 14px;
+            color: #2b7cff;
+        }
+
+        .task-date span {
+            font-size: 10px;
+            text-transform: uppercase;
+            color: #64748b;
+        }
+
+        .task-info b {
+            font-size: 13px;
+            display: block;
+            color: #1e293b;
+        }
+
+        .task-info span {
+            font-size: 11px;
+            color: #64748b;
+        }
+
+        .action-mini {
+            background: #fff;
+            padding: 15px;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: 0.2s;
+            border: 1px solid transparent;
+            margin-bottom: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        }
+
+        .action-mini:hover {
+            border-color: #2b7cff;
+            background: #f0f7ff;
+        }
+
+        .action-mini b {
+            display: block;
+            font-size: 14px;
+            margin-bottom: 4px;
+        }
+
+        .action-mini span {
+            font-size: 11px;
+            color: #64748b;
+        }
+
+        .badge-count {
+            float: right;
+            background: #fee2e2;
+            color: #ef4444;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 10px;
+            font-weight: 700;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="app">
+
+        <!-- SIDEBAR -->
+        <div class="sidebar">
+            <h2>HostelHub</h2>
+            <p class="portal-label">Admin Portal</p>
+            <ul>
+                <li class="active">Dashboard</li>
+                <li onclick="location.href='all_complaints.html'">All Complaints</li>
+                <li onclick="location.href='manage_workers.html'">Manage Workers</li>
+                <li onclick="location.href='manage_notices.html'">Manage Notices</li>
+                <li onclick="location.href='schedule.html'">Schedule</li>
+                <li onclick="location.href='settings.html'">Settings</li>
+            </ul>
+            <div class="sidebar-logout" onclick="logout()">
+                Logout
+            </div>
+        </div>
+
+        <!-- MAIN CONTENT -->
+        <div class="content">
+
+            <div class="topbar">
+                <div>
+                    <h2>Admin Overview</h2>
+                    <p class="subtitle">System health, performance metrics & proactive planning</p>
+                </div>
+            </div>
+
+            <!-- SUMMARY BOXES -->
+            <div class="stats-row">
+                <div class="stat-box total">
+                    <p>Total Complaints</p>
+                    <h2 id="totalComplaints">0</h2>
+                    <span>All Time</span>
+                </div>
+                <div class="stat-box pending">
+                    <p>Open Issues</p>
+                    <h2 id="openIssues">0</h2>
+                    <span>Pending & Verified</span>
+                </div>
+                <div class="stat-box progress">
+                    <p>In Progress</p>
+                    <h2 id="inProgress">0</h2>
+                    <span>Technicians On-site</span>
+                </div>
+                <div class="stat-box resolved">
+                    <p>Avg Rating</p>
+                    <h2 id="avgRating">0.0</h2>
+                    <span>User Satisfaction</span>
+                </div>
+            </div>
+
+            <div class="dashboard-grid">
+
+                <!-- LEFT COLUMN: PERFORMANCE & ANALYTICS -->
+                <div class="main-stats">
+
+                    <div class="metric-card">
+                        <div class="card-header">
+                            <h3>⚡ Efficiency Metrics</h3>
+                            <span style="font-size: 12px; color: #2b7cff; cursor: pointer;">Last 30 Days ▾</span>
+                        </div>
+                        <div class="efficiency-grid">
+                            <div class="efficiency-box">
+                                <b>1.4 Days</b>
+                                <span>Avg. Resolution Time</span>
+                            </div>
+                            <div class="efficiency-box">
+                                <b>88.5%</b>
+                                <span>SLA Compliance</span>
+                            </div>
+                            <div class="efficiency-box">
+                                <b>₹4,250</b>
+                                <span>Maintenance Spend</span>
+                            </div>
+                            <div class="efficiency-box">
+                                <b>32m</b>
+                                <span>Avg. Initial Contact</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="metric-card">
+                        <div class="card-header">
+                            <h3>📁 Maintenance Category Breakdown</h3>
+                        </div>
+                        <div class="heatmap-item">
+                            <div class="heatmap-label"><span>Plumbing</span><span>42%</span></div>
+                            <div class="bar-bg">
+                                <div class="bar-fill" style="width: 42%; background: #ef4444;"></div>
+                            </div>
+                        </div>
+                        <div class="heatmap-item">
+                            <div class="heatmap-label"><span>Electrical</span><span>28%</span></div>
+                            <div class="bar-bg">
+                                <div class="bar-fill" style="width: 28%; background: #f59e0b;"></div>
+                            </div>
+                        </div>
+                        <div class="heatmap-item">
+                            <div class="heatmap-label"><span>Furniture / Carpentry</span><span>18%</span></div>
+                            <div class="bar-bg">
+                                <div class="bar-fill" style="width: 18%; background: #3b82f6;"></div>
+                            </div>
+                        </div>
+                        <div class="heatmap-item" style="margin-bottom: 0;">
+                            <div class="heatmap-label"><span>Masonry / Walls</span><span>12%</span></div>
+                            <div class="bar-bg">
+                                <div class="bar-fill" style="width: 12%; background: #64748b;"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- RIGHT COLUMN: PROACTIVE PLANNING -->
+                <div class="side-planning">
+
+                    <div class="metric-card">
+                        <div class="card-header">
+                            <h3>📅 Upcoming Maintenance</h3>
+                            <a href="schedule.html" style="font-size: 11px; color: #2b7cff; text-decoration: none;">View
+                                All</a>
+                        </div>
+
+                        <div class="task-item">
+                            <div class="task-date">
+                                <b>18</b>
+                                <span>Feb</span>
+                            </div>
+                            <div class="task-info">
+                                <b>Water Tank Cleaning</b>
+                                <span>All Blocks · 09:00 AM</span>
+                            </div>
+                        </div>
+
+                        <div class="task-item">
+                            <div class="task-date">
+                                <b>22</b>
+                                <span>Feb</span>
+                            </div>
+                            <div class="task-info">
+                                <b>Kitchen Hood Service</b>
+                                <span>Main Mess · 11:30 AM</span>
+                            </div>
+                        </div>
+
+                        <div class="task-item" style="border: none;">
+                            <div class="task-date">
+                                <b>01</b>
+                                <span>Mar</span>
+                            </div>
+                            <div class="task-info">
+                                <b>Pest Control Cycle</b>
+                                <span>Block A & B · 08:00 AM</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="metric-card" style="background: #f8fafc; border: 1px dashed #cbd5e1; box-shadow: none;">
+                        <div class="card-header" style="border: none; margin-bottom: 10px;">
+                            <h3 style="color: #475569;">Quick Actions</h3>
+                        </div>
+                        <div class="action-mini" onclick="location.href='all_complaints.html'">
+                            <span class="badge-count" id="newReportsBadge">0</span>
+                            <b>New Reports</b>
+                            <span>Assign Workers</span>
+                        </div>
+                        <div class="action-mini" onclick="location.href='manage_notices.html'">
+                            <span class="badge-count" style="background:#e0f2fe; color:#0369a1">1</span>
+                            <b>Review Notice</b>
+                            <span>Draft Awaiting Approval</span>
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        window.onload = async function () {
+            // Fetch all data
+            const [complaints, notices] = await Promise.all([
+                apiCall('complaints/', 'GET'),
+                apiCall('notices/', 'GET')
+            ]);
+
+            if (complaints) {
+                const total = complaints.length;
+                const inProgress = complaints.filter(c => c.status === 'In Progress').length;
+                const awaitingApproval = complaints.filter(c => c.status === 'Awaiting Approval').length;
+                const resolved = complaints.filter(c => c.status === 'Resolved').length;
+                const openIssues = complaints.filter(c => c.status !== 'Resolved').length;
+
+                document.getElementById('totalComplaints').innerText = total;
+                document.getElementById('openIssues').innerText = openIssues;
+                document.getElementById('inProgress').innerText = inProgress;
+
+                // Calculate Avg Rating
+                const rated = complaints.filter(c => c.feedback_rating);
+                if (rated.length > 0) {
+                    const avg = rated.reduce((acc, c) => acc + c.feedback_rating, 0) / rated.length;
+                    document.getElementById('avgRating').innerText = avg.toFixed(1);
+                }
+
+                // Quick Action Badges
+                document.getElementById('newReportsBadge').innerText = awaitingApproval;
+            }
+
+            if (notices) {
+                // Example: counting active notices
+                // Assuming you have a badge for that too
+            }
+        };
+    </script>
+</body>
+
+</html>

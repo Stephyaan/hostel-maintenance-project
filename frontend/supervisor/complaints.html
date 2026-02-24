@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Lifecycle Manager | Supervisor</title>
+    <link rel="stylesheet" href="../static/css/style.css">
+    <script src="../static/js/main.js"></script>
+    <style>
+        .pipeline-tabs {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 25px;
+            border-bottom: 2px solid #e2e8f0;
+            padding-bottom: 10px;
+        }
+
+        .tab {
+            padding: 8px 16px;
+            cursor: pointer;
+            font-weight: 600;
+            color: #64748b;
+            border-radius: 8px;
+            transition: 0.2s;
+        }
+
+        .tab.active {
+            background: #2b7cff;
+            color: white;
+        }
+
+        .tab span {
+            font-size: 11px;
+            background: rgba(0, 0, 0, 0.1);
+            padding: 2px 6px;
+            border-radius: 4px;
+            margin-left: 5px;
+        }
+
+        .tab.active span {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        /* Complaint Row Refinement */
+        .complaint-card {
+            background: #fff;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            margin-bottom: 15px;
+            border-left: 5px solid #2b7cff;
+        }
+
+        .complaint-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 15px;
+        }
+
+        .priority-badge {
+            font-size: 10px;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        .p-high {
+            background: #fee2e2;
+            color: #ef4444;
+        }
+
+        .p-med {
+            background: #fef3c7;
+            color: #d97706;
+        }
+
+        .p-low {
+            background: #f1f5f9;
+            color: #64748b;
+        }
+
+        /* Actions Bar */
+        .action-bar {
+            background: #f8fafc;
+            padding: 12px;
+            border-radius: 8px;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            margin-top: 15px;
+        }
+
+        .btn-sm {
+            padding: 6px 12px;
+            font-size: 12px;
+            border-radius: 6px;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .duplicate-tag {
+            background: #fef2f2;
+            color: #ef4444;
+            border: 1px dashed #fecaca;
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            font-size: 12px;
+            display: none;
+        }
+
+        /* Modal specific */
+        .modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.5);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .topbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="app">
+
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <h2>HostelHub</h2>
+            <p style="color:#777;font-size:14px;">Supervisor Portal</p>
+            <ul>
+                <li onclick="location.href='dashboard.html'">Dashboard</li>
+                <li class="active">Lifecycle Manager</li>
+                <li onclick="location.href='workers.html'">Manage Workers</li>
+                <li onclick="location.href='notices.html'">Notices</li>
+                <li onclick="location.href='reports.html'">Reports</li>
+            </ul>
+            <div class="sidebar-logout" onclick="logout()">
+                Logout
+            </div>
+        </div>
+
+        <!-- Content -->
+        <div class="content">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    <h2>Complaint Lifecycle</h2>
+                    <p style="color:#666;">Verify, Triage, and Monitor all maintenance logs</p>
+                </div>
+                <button class="btn-outline" onclick="toggleAdvancedMode()">⚙️ Advanced Mode: ON</button>
+            </div>
+
+            <div class="pipeline-tabs" style="margin-top: 20px;">
+                <div class="tab active" onclick="switchTab('incoming')">📥 Incoming <span id="count-incoming">0</span>
+                </div>
+                <div class="tab" onclick="switchTab('requests')">📦 Requests <span id="count-requests">0</span></div>
+                <div class="tab" onclick="switchTab('approval')">⏳ Waiting <span id="count-approval">0</span></div>
+                <div class="tab" onclick="switchTab('wip')">🛠️ In Progress <span id="count-wip">0</span></div>
+                <div class="tab" onclick="switchTab('review')">✅ Quality Check <span id="count-review">0</span></div>
+            </div>
+
+            <div id="complaint-container">
+                <!-- Complaints will be rendered here via JS -->
+            </div>
+        </div>
+    </div>
+
+    <!-- TRIAGE MODAL -->
+    <div id="triageModal" class="modal">
+        <div class="modal-box" style="width: 500px;">
+            <h3>Complaint Triage</h3>
+            <p id="t-desc"
+                style="font-size: 14px; margin-bottom: 15px; background: #f8fafc; padding: 10px; border-radius: 6px;">
+            </p>
+
+            <div class="duplicate-tag" id="dup-warning">
+                ⚠️ <b>Potential Duplicate Detected:</b> Another complaint for Block A plumbing was filed in last 24h.
+            </div>
+
+            <label>Verify Genuinity</label>
+            <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+                <button class="btn-sm" style="background:#dcfce7; color:#166534; flex:1;" id="btn-genuine"
+                    onclick="markGenuine(true)">Genuine</button>
+                <button class="btn-sm" style="background:#fee2e2; color:#991b1b; flex:1;"
+                    onclick="markGenuine(false)">Spam/False</button>
+            </div>
+
+            <div id="triage-form" style="display: none;">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                    <div>
+                        <label>Category</label>
+                        <select id="t-cat">
+                            <option>Plumbing</option>
+                            <option>Electrical</option>
+                            <option>Furniture</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label>Priority</label>
+                        <select id="t-pri">
+                            <option value="low">Low (Routine)</option>
+                            <option value="med">Medium (Standard)</option>
+                            <option value="high">High (Critical)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <label>Assign Primary Worker</label>
+                <select id="t-worker">
+                    <option>Vijay (Lead Plumber)</option>
+                    <option>Suresh (Senior Carpenter)</option>
+                    <option>Ramesh (Electrician)</option>
+                </select>
+
+                <div
+                    style="margin-top: 15px; background: #fffbeb; padding: 10px; border-radius: 6px; border: 1px solid #fde68a;">
+                    <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; color: #92400e;">
+                        <input type="checkbox" id="need-approval"> Request Admin Budget Approval?
+                    </label>
+                    <small style="color: #b45309; display: block; margin-top: 4px;">Tick this if parts/major costs are
+                        required.</small>
+                </div>
+
+                <div class="modal-actions" style="margin-top: 20px;">
+                    <button class="btn-outline" onclick="closeModal()">Cancel</button>
+                    <button class="btn" style="background: #10b981;" id="btn-submit-triage"
+                        onclick="submitTriage()">Submit Task</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Update button text dynamically
+        document.addEventListener('change', (e) => {
+            if (e.target.id === 'need-approval') {
+                const btn = document.getElementById('btn-submit-triage');
+                btn.innerText = e.target.checked ? 'Forward to Admin' : 'Submit Task';
+                btn.style.background = e.target.checked ? '#f59e0b' : '#10b981';
+            }
+        });
+        let allComplaints = [];   // live data from API
+        let allWorkers = [];      // live workers from API
+        let allRequests = [];     // live resource requests from API
+        let activeTab = 'incoming';
+        let currentEditingId = null;
+
+        // ── Map API status → pipeline tab ──────────────────────────────────
+        // Pending   → incoming
+        // In Progress → wip
+        // Resolved  → review
+        // (approval is a local-only state we keep in memory for now)
+        function statusToTab(status) {
+            if (status === 'Pending') return 'incoming';
+            if (status === 'Awaiting Approval') return 'approval';
+            if (status === 'In Progress') return 'wip';
+            if (status === 'Resolved') return 'review';
+            return 'incoming';
+        }
+
+        // ── Load everything from API on page load ──────────────────────────
+        async function loadData() {
+            const [complaints, workers, requests, settings] = await Promise.all([
+                apiCall('complaints/', 'GET'),
+                apiCall('workers/', 'GET'),
+                apiCall('resources/', 'GET'),
+                apiCall('settings/', 'GET')
+            ]);
+
+            allComplaints = complaints || [];
+            allWorkers = workers || [];
+            allRequests = requests || [];
+
+            applySettings(settings);
+            renderComplaints();
+        }
+
+        let approvalRequiredByAdmin = false;
+
+        function applySettings(settings) {
+            if (!settings) return;
+
+            // USER REQUESTED: Toggle ON means NO approval needed (Direct submit)
+            // Toggle OFF means approval IS needed (Forward to Admin)
+            const approvalSetting = settings.find(s => s.key === 'complaint_request_approval');
+
+            // If setting exists and is FALSE (OFF), then approval IS required
+            approvalRequiredByAdmin = (approvalSetting && approvalSetting.value === false);
+
+            const btn = document.getElementById('btn-submit-triage');
+            if (approvalRequiredByAdmin) {
+                btn.innerText = 'Send to Admin for Approval';
+                btn.style.background = '#f59e0b';
+            } else {
+                btn.innerText = 'Assign Worker & Submit';
+                btn.style.background = '#10b981';
+            }
+
+            // Hide the manual checkbox as the workflow is now centrally controlled
+            const approvalBox = document.getElementById('need-approval').parentElement.parentElement;
+            approvalBox.style.display = 'none';
+        }
+
+        // ── Render the active tab ──────────────────────────────────────────
+        function renderComplaints() {
+            const container = document.getElementById('complaint-container');
+            container.innerHTML = '';
+
+            // ── REQUESTS TAB ──
+            if (activeTab === 'requests') {
+                const pending = allRequests.filter(r => r.status === 'Pending');
+                if (pending.length === 0) {
+                    container.innerHTML = `<div style="text-align:center; padding: 50px; color: #94a3b8;">No pending resource requests.</div>`;
+                } else {
+                    pending.forEach(r => {
+                        const dateStr = new Date(r.created_at).toLocaleDateString();
+                        container.insertAdjacentHTML('beforeend', `
+                            <div class="complaint-card" style="border-left-color: #ec4899;">
+                                <div class="complaint-header">
+                                    <div>
+                                        <small style="color:#64748b; font-weight:600;">#${r.id} · ${dateStr}</small>
+                                        <h3 style="margin:5px 0;">📦 Request: ${r.item_name}</h3>
+                                        <p style="font-size:13px; color:#475569;">👤 ${r.student_name} · 📍 Room ${r.student || ''}</p>
+                                    </div>
+                                    <span class="status-pill pending">New Request</span>
+                                </div>
+                                <div class="action-bar">
+                                    <button class="btn-sm" style="background:#10b981; color:white;" onclick="handleRequest(${r.id}, 'Approved')">Approve</button>
+                                    <button class="btn-sm" style="background:#ef4444; color:white;" onclick="handleRequest(${r.id}, 'Rejected')">Reject</button>
+                                </div>
+                            </div>`);
+                    });
+                }
+                updateCounts();
+                return;
+            }
+
+            // ── COMPLAINT TABS ──
+            const filtered = allComplaints.filter(c => statusToTab(c.status) === activeTab);
+
+            if (filtered.length === 0) {
+                container.innerHTML = `<div style="text-align:center; padding: 50px; color: #94a3b8;">No tasks in this stage.</div>`;
+                updateCounts();
+                return;
+            }
+
+            filtered.forEach(c => {
+                const dateStr = new Date(c.created_at).toLocaleDateString();
+                const color = getTabColor(activeTab);
+                const workerName = c.assigned_worker_name || '—';
+
+                container.insertAdjacentHTML('beforeend', `
+                    <div class="complaint-card" style="border-left-color:${color}">
+                        <div class="complaint-header">
+                            <div>
+                                <small style="color:#64748b; font-weight:600;">#${c.id} · ${dateStr}</small>
+                                <h3 style="margin:5px 0;">${c.title}</h3>
+                                <p style="font-size:13px; color:#475569;">
+                                    📍 ${c.room} &nbsp;·&nbsp;
+                                    👤 ${c.student_name || 'Student'} &nbsp;·&nbsp;
+                                    <span class="priority-badge p-${c.priority.toLowerCase().substring(0, 3)}">${c.priority}</span>
+                                </p>
+                            </div>
+                            ${activeTab === 'incoming' ? '<span class="status-pill pending">New Task</span>' : ''}
+                            ${activeTab === 'approval' ? '<span class="status-pill progress" style="background:#fef3c7; color:#d97706;">⌛ Awaiting Admin</span>' : ''}
+                            ${activeTab === 'wip' ? `<span class="status-pill progress">👷 ${workerName}</span>` : ''}
+                            ${activeTab === 'review' ? '<span class="status-pill resolved">✅ Resolved</span>' : ''}
+                        </div>
+                        <p style="font-size:13px; color:#64748b; line-height:1.5;">${c.description}</p>
+                        <div class="action-bar">${getActionBtns(c)}</div>
+                    </div>`);
+            });
+
+            updateCounts();
+        }
+
+        function getActionBtns(c) {
+            if (activeTab === 'incoming') {
+                return `<button class="btn-sm" style="background:#2b7cff; color:white;" onclick="openTriage(${c.id})">Start Triage &amp; Verify</button>`;
+            }
+            if (activeTab === 'approval') {
+                return `<span style="font-size:12px; color:#d97706; font-weight:600;">⏳ This task is pending Admin budget/cost approval.</span>`;
+            }
+            if (activeTab === 'wip') {
+                return `
+                    <button class="btn-sm btn-outline" onclick="alert('Reminder sent to worker.')">Send Reminder</button>
+                    <button class="btn-sm" style="background:#10b981; color:white;" onclick="markResolved(${c.id})">Mark Resolved</button>`;
+            }
+            if (activeTab === 'review') {
+                return `<span style="font-size:12px; color:#15803d; font-weight:600;">✅ This complaint has been resolved.</span>`;
+            }
+            return '';
+        }
+
+        function getTabColor(tab) {
+            return { incoming: '#3b82f6', wip: '#8b5cf6', review: '#10b981', requests: '#ec4899', approval: '#f59e0b' }[tab] || '#ccc';
+        }
+
+        function updateCounts() {
+            document.getElementById('count-incoming').innerText = allComplaints.filter(c => statusToTab(c.status) === 'incoming').length;
+            document.getElementById('count-wip').innerText = allComplaints.filter(c => statusToTab(c.status) === 'wip').length;
+            document.getElementById('count-review').innerText = allComplaints.filter(c => statusToTab(c.status) === 'review').length;
+            document.getElementById('count-approval').innerText = allComplaints.filter(c => statusToTab(c.status) === 'approval').length;
+            document.getElementById('count-requests').innerText = allRequests.filter(r => r.status === 'Pending').length;
+        }
+
+        function switchTab(tab) {
+            activeTab = tab;
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            event.target.closest('.tab').classList.add('active');
+            renderComplaints();
+        }
+
+        // ── TRIAGE MODAL ──────────────────────────────────────────────────
+        function openTriage(id) {
+            currentEditingId = id;
+            const c = allComplaints.find(x => x.id === id);
+            document.getElementById('t-desc').innerText = `"${c.description}"`;
+            document.getElementById('triageModal').style.display = 'flex';
+            document.getElementById('triage-form').style.display = 'none';
+            document.getElementById('btn-genuine').disabled = false;
+            document.getElementById('btn-genuine').style.background = '';
+            document.getElementById('btn-genuine').style.color = '';
+
+            // Populate worker dropdown from real workers
+            const sel = document.getElementById('t-worker');
+            sel.innerHTML = allWorkers.length
+                ? allWorkers.map(w => `<option value="${w.id}">${w.name} (${w.skill})</option>`).join('')
+                : '<option value="">No workers available</option>';
+
+            document.getElementById('dup-warning').style.display = 'none';
+        }
+
+        function markGenuine(isTrue) {
+            if (!isTrue) {
+                if (confirm('Mark this complaint as Spam/False and delete it?')) {
+                    deleteComplaint(currentEditingId);
+                }
+                closeModal();
+                return;
+            }
+            document.getElementById('triage-form').style.display = 'block';
+            document.getElementById('btn-genuine').style.background = '#166534';
+            document.getElementById('btn-genuine').style.color = '#fff';
+            document.getElementById('btn-genuine').disabled = true;
+        }
+
+        async function submitTriage() {
+            const workerId = document.getElementById('t-worker').value;
+            const needsAdmin = approvalRequiredByAdmin;
+
+            const patchData = {
+                status: needsAdmin ? 'Awaiting Approval' : 'In Progress',
+                assigned_worker: workerId || null
+            };
+
+            const updated = await apiCall(`complaints/${currentEditingId}/`, 'PATCH', patchData);
+            if (updated) {
+                // Update local cache
+                const idx = allComplaints.findIndex(c => c.id === currentEditingId);
+                if (idx > -1) allComplaints[idx] = updated;
+
+                if (needsAdmin) {
+                    alert('Complaint forwarded to Admin for approval as per current system settings.');
+                } else {
+                    const workerName = allWorkers.find(w => w.id == workerId)?.name || 'Worker';
+                    alert(`Task assigned to ${workerName} and moved to In-Progress.`);
+                }
+                closeModal();
+                renderComplaints();
+            }
+        }
+
+        async function markResolved(id) {
+            if (!confirm('Mark this complaint as Resolved?')) return;
+            const updated = await apiCall(`complaints/${id}/`, 'PATCH', { status: 'Resolved' });
+            if (updated) {
+                const idx = allComplaints.findIndex(c => c.id === id);
+                if (idx > -1) allComplaints[idx] = updated;
+                renderComplaints();
+            }
+        }
+
+        async function deleteComplaint(id) {
+            const ok = await apiCall(`complaints/${id}/`, 'DELETE');
+            if (ok) {
+                allComplaints = allComplaints.filter(c => c.id !== id);
+                renderComplaints();
+            }
+        }
+
+        async function handleRequest(id, action) {
+            const updated = await apiCall(`resources/${id}/`, 'PATCH', { status: action });
+            if (updated) {
+                const idx = allRequests.findIndex(r => r.id === id);
+                if (idx > -1) allRequests[idx] = updated;
+                alert(`Request ${action} successfully.`);
+                renderComplaints();
+            }
+        }
+
+        function closeModal() { document.getElementById('triageModal').style.display = 'none'; }
+
+        function toggleAdvancedMode() {
+            alert('Advanced Mode: Duplicate scanning enabled.');
+        }
+
+        window.onload = async () => {
+            await loadData();
+            syncSidebarSettings();
+        };
+    </script>
+</body>
+
+</html>

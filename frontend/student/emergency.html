@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Emergency</title>
+    <link rel="stylesheet" href="../static/css/style.css">
+    <script src="../static/js/main.js"></script>
+
+    <style>
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+        }
+
+        .em-card {
+            padding: 18px;
+            border-radius: 10px;
+            border-left: 6px solid;
+            background: #ffffff;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+        }
+
+        /* Same colors as Notices */
+        .info {
+            background: #e7f3ff;
+            border-color: #2b7cff;
+        }
+
+        .warning {
+            background: #fff4e5;
+            border-color: #f0ad4e;
+        }
+
+        .success {
+            background: #e6f4ea;
+            border-color: #28a745;
+        }
+
+        .danger {
+            background: #fdecea;
+            border-color: #dc3545;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="app">
+
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <h2>HostelHub</h2>
+            <p class="portal-label">Student Portal</p>
+
+            <ul>
+                <li onclick="location.href='dashboard.html'">Dashboard</li>
+                <li onclick="location.href='complaints.html'">My Complaints</li>
+                <li onclick="location.href='request_resources.html'">Request Resources</li>
+                <li onclick="location.href='notices.html'">Notices</li>
+                <li onclick="location.href='emergency.html'">Emergency</li>
+            </ul>
+            <div class="sidebar-logout" onclick="logout()">
+                Logout
+            </div>
+        </div>
+
+
+
+        <!-- Content -->
+        <div class="content">
+            <h2>Emergency Information</h2>
+            <p>Quick access to important emergency contacts and procedures</p>
+
+            <div class="grid">
+
+                <div class="em-card info">
+                    <b>Hostel Warden</b><br>
+                    📞 +91 98765 43210
+                </div>
+
+                <div class="em-card info">
+                    <b>Security Office</b><br>
+                    📞 +91 98765 43211
+                </div>
+
+                <div class="em-card success">
+                    <b>Medical Emergency</b><br>
+                    📞 +91 98765 43213
+                </div>
+
+                <div class="em-card warning">
+                    <b>Water / Electrical Emergency</b>
+                    <ul>
+                        <li>Switch off main supply if safe</li>
+                        <li>Inform maintenance immediately</li>
+                        <li>Avoid wet areas</li>
+                    </ul>
+                </div>
+
+                <div class="em-card danger">
+                    <b>Fire Emergency Procedures</b>
+                    <ul>
+                        <li>Activate nearest fire alarm</li>
+                        <li>Use stairs, not elevators</li>
+                        <li>Assemble at emergency point</li>
+                    </ul>
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        window.onload = function () {
+            syncSidebarSettings();
+        }
+    </script>
+</body>
+
+</html>

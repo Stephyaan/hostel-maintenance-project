@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Student Dashboard</title>
+    <link rel="stylesheet" href="../static/css/style.css">
+    <script src="../static/js/main.js"></script>
+
+    <style>
+        .topbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 25px;
+            margin-top: 25px;
+        }
+
+        .metric-card {
+            background: #fff;
+            padding: 20px;
+            border-radius: 14px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            margin-bottom: 25px;
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        .card-header h3 {
+            font-size: 16px;
+            color: #1e293b;
+            margin: 0;
+        }
+
+        .complaint-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        .complaint-item:last-child {
+            border-bottom: none;
+        }
+
+        .complaint-info b {
+            font-size: 14px;
+            display: block;
+            color: #1e293b;
+        }
+
+        .complaint-info span {
+            font-size: 12px;
+            color: #64748b;
+        }
+
+        .stat-pill {
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 700;
+        }
+
+        .stat-pill.pending {
+            background: #fff7ed;
+            color: #c2410c;
+        }
+
+        .stat-pill.progress {
+            background: #eff6ff;
+            color: #1d4ed8;
+        }
+
+        .stat-pill.resolved {
+            background: #f0fdf4;
+            color: #15803d;
+        }
+
+        .action-mini {
+            background: #fff;
+            padding: 15px;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: 0.2s;
+            border: 1px solid transparent;
+            margin-bottom: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        }
+
+        .action-mini:hover {
+            border-color: #2b7cff;
+            background: #f0f7ff;
+        }
+
+        .action-mini b {
+            display: block;
+            font-size: 14px;
+            margin-bottom: 4px;
+        }
+
+        .action-mini span {
+            font-size: 11px;
+            color: #64748b;
+        }
+
+        .badge-count {
+            float: right;
+            background: #e0f2fe;
+            color: #0369a1;
+            padding: 2px 8px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 700;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="app">
+
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <h2>HostelHub</h2>
+            <p class="portal-label">Student Portal</p>
+
+            <ul>
+                <li onclick="location.href='dashboard.html'">Dashboard</li>
+                <li onclick="location.href='complaints.html'">My Complaints</li>
+                <li onclick="location.href='request_resources.html'">Request Resources</li>
+                <li onclick="location.href='notices.html'">Notices</li>
+                <li onclick="location.href='emergency.html'">Emergency</li>
+            </ul>
+            <div class="sidebar-logout" onclick="logout()">
+                Logout
+            </div>
+        </div>
+
+
+
+        <!-- Main Content -->
+        <div class="content">
+
+            <!-- Top Header -->
+            <div class="topbar">
+                <div>
+                    <h2>Welcome back, Student 👋</h2>
+                    <p style="color:#666;">Block A · Room 204</p>
+                </div>
+
+            </div>
+
+            <!-- SUMMARY BOXES -->
+            <div class="stats-row">
+                <div class="stat-box total">
+                    <p>My Complaints</p>
+                    <h2 id="totalCount">0</h2>
+                    <span>Filed to date</span>
+                </div>
+                <div class="stat-box pending">
+                    <p>Pending</p>
+                    <h2 id="pendingCount">0</h2>
+                    <span>Awaiting Action</span>
+                </div>
+                <div class="stat-box progress">
+                    <p>In Progress</p>
+                    <h2 id="progressCount">0</h2>
+                    <span>Work Started</span>
+                </div>
+                <div class="stat-box resolved">
+                    <p>Resolved</p>
+                    <h2 id="resolvedCount">0</h2>
+                    <span>Closed Issues</span>
+                </div>
+            </div>
+
+            <!-- DASHBOARD GRID -->
+            <div class="dashboard-grid">
+
+                <!-- LEFT COLUMN -->
+                <div class="main-stats">
+
+                    <!-- Recent Activity -->
+                    <div class="metric-card">
+                        <div class="card-header">
+                            <h3>🕒 Recent Activity</h3>
+                            <a href="complaints.html" style="font-size:12px; color:#2b7cff; text-decoration:none;">View
+                                All</a>
+                        </div>
+                        <div id="recentList">
+                            <!-- JS will populate -->
+                            <div style="text-align:center; color:#94a3b8; font-style:italic;">No recent activity</div>
+                        </div>
+                    </div>
+
+                    <!-- Resource Requests -->
+                    <div class="metric-card">
+                        <div class="card-header">
+                            <h3>📦 Material Requests</h3>
+                            <a href="request_resources.html"
+                                style="font-size:12px; color:#2b7cff; text-decoration:none;">Track</a>
+                        </div>
+                        <div class="complaint-item">
+                            <div class="complaint-info">
+                                <b>New Request</b>
+                                <span>Study Table Lamp</span>
+                            </div>
+                            <span class="stat-pill pending">Pending Approval</span>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- RIGHT COLUMN -->
+                <div class="side-planning">
+
+                    <!-- ACTIONS -->
+                    <div class="metric-card" style="background: #f8fafc; border: 1px dashed #cbd5e1; box-shadow: none;">
+                        <h3 style="color: #475569; margin-bottom:15px; font-size:14px;">Quick Actions</h3>
+
+                        <div class="action-mini" onclick="location.href='complaints.html'">
+                            <b>+ New Complaint</b>
+                            <span>Report an issue in your room</span>
+                        </div>
+
+                        <div class="action-mini" onclick="location.href='emergency.html'">
+                            <span class="badge-count" style="background:#fee2e2; color:#ef4444;">SOS</span>
+                            <b>Emergency Contact</b>
+                            <span>Medical / Security Help</span>
+                        </div>
+                    </div>
+
+                    <!-- NOTICES -->
+                    <div class="metric-card">
+                        <div class="card-header">
+                            <h3>📢 Notice Board</h3>
+                            <span class="badge-count" id="noticeBadge">0 New</span>
+                        </div>
+                        <p style="font-size:13px; color:#64748b; margin-bottom:15px;">Official updates from
+                            Warden/Supervisor.</p>
+                        <button class="btn" style="width:100%; font-size:13px;"
+                            onclick="location.href='notices.html'">View Notices</button>
+                    </div>
+
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <script>
+        window.onload = async function () {
+            // Show logged-in user info
+            const user = JSON.parse(localStorage.getItem('user') || '{}');
+            if (user.username) {
+                document.querySelector('.topbar h2').innerText = `Welcome back, ${user.first_name || user.username} 👋`;
+                if (user.block && user.room_number) {
+                    document.querySelector('.topbar p').innerText = `Block ${user.block} · Room ${user.room_number}`;
+                }
+            }
+
+            // Fetch data and settings
+            const [complaints, notices, settings] = await Promise.all([
+                apiCall('complaints/', 'GET'),
+                apiCall('notices/', 'GET'),
+                apiCall('settings/', 'GET')
+            ]);
+
+            // Handle Settings
+            if (settings) {
+                const resourceModule = settings.find(s => s.key === 'resource_request_module');
+                if (resourceModule && resourceModule.value === false) {
+                    // Hide in sidebar
+                    const resSidebar = document.querySelector('li[onclick*="request_resources.html"]');
+                    if (resSidebar) resSidebar.style.display = 'none';
+                    // Hide in dashboard grid
+                    const resCard = document.querySelector('.metric-card:has(h3:contains("Material Requests"))') ||
+                        Array.from(document.querySelectorAll('.metric-card')).find(el => el.innerText.includes('Material Requests'));
+                    if (resCard) resCard.style.display = 'none';
+                }
+            }
+
+            // 1. Complaints
+            if (complaints) {
+                document.getElementById('totalCount').innerText = complaints.length;
+                document.getElementById('pendingCount').innerText = complaints.filter(c => c.status === 'Pending').length;
+                document.getElementById('progressCount').innerText = complaints.filter(c => c.status === 'In Progress').length;
+                document.getElementById('resolvedCount').innerText = complaints.filter(c => c.status === 'Resolved').length;
+
+                const recentContainer = document.getElementById('recentList');
+                if (complaints.length > 0) {
+                    recentContainer.innerHTML = complaints.slice(0, 3).map(c => {
+                        const dateStr = new Date(c.created_at).toLocaleDateString();
+                        const statusClass = c.status.toLowerCase().replace(' ', '');
+                        return `
+                        <div class="complaint-item">
+                            <div class="complaint-info">
+                                <b>${c.title}</b>
+                                <span>${dateStr} · ${c.room}</span>
+                            </div>
+                            <span class="stat-pill ${statusClass}">${c.status}</span>
+                        </div>
+                    `}).join('');
+                } else {
+                    recentContainer.innerHTML = `<div style="text-align:center; color:#94a3b8; font-style:italic;">No recent activity</div>`;
+                }
+            }
+
+            // 3. Notices
+            if (notices) {
+                document.getElementById('noticeBadge').innerText = `${notices.length} Active`;
+            }
+        }
+    </script>
+
+
+
+    </div>
+    </div>
+
+</body>
+
+</html>

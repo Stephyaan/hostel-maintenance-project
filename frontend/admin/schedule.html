@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Maintenance Schedule | Admin</title>
+    <link rel="stylesheet" href="../static/css/style.css">
+    <script src="../static/js/main.js"></script>
+    <style>
+        .schedule-container {
+            display: grid;
+            grid-template-columns: 1fr 350px;
+            gap: 25px;
+            margin-top: 20px;
+        }
+
+        .schedule-list {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .schedule-item {
+            background: #fff;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            border-left: 6px solid #2b7cff;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.3s ease;
+        }
+
+        .schedule-item.missed {
+            border-left-color: #dc3545;
+            background: #fff8f8;
+        }
+
+        .schedule-item.done {
+            border-left-color: #28a745;
+            opacity: 0.8;
+        }
+
+        .date-badge {
+            background: #e7f3ff;
+            color: #2b7cff;
+            padding: 8px 12px;
+            border-radius: 8px;
+            text-align: center;
+            min-width: 80px;
+        }
+
+        .date-badge b {
+            font-size: 18px;
+            display: block;
+        }
+
+        .date-badge span {
+            font-size: 12px;
+            text-transform: uppercase;
+        }
+
+        .recurring-box {
+            background: #fff;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        }
+
+        .recurring-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-top: 15px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .recurring-item:last-child {
+            border-bottom: none;
+        }
+
+        .icon-circle {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #f0f4f8;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+        }
+
+        .notify-btn {
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 600;
+            display: none;
+        }
+
+        .notify-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        .item-actions {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 8px;
+        }
+
+        .status-pill {
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .status-pill.scheduled {
+            background: #e7f3ff;
+            color: #2b7cff;
+        }
+
+        .status-pill.missed {
+            background: #fdecea;
+            color: #dc3545;
+        }
+
+        .status-pill.done {
+            background: #e6f4ea;
+            color: #28a745;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="app">
+
+        <!-- SIDEBAR -->
+        <div class="sidebar">
+            <h2>HostelHub</h2>
+            <p class="portal-label">Admin Portal</p>
+            <ul>
+                <li onclick="location.href='dashboard.html'">Dashboard</li>
+                <li onclick="location.href='all_complaints.html'">All Complaints</li>
+                <li onclick="location.href='manage_workers.html'">Manage Workers</li>
+                <li onclick="location.href='manage_notices.html'">Manage Notices</li>
+                <li class="active">Schedule</li>
+                <li onclick="location.href='settings.html'">Settings</li>
+            </ul>
+            <div class="sidebar-logout" onclick="logout()">
+                Logout
+            </div>
+        </div>
+
+        <!-- CONTENT -->
+        <div class="content">
+            <h2>Maintenance Schedule</h2>
+            <p style="color:#666;">Plan and manage routine hostel maintenance activities</p>
+
+            <div class="schedule-container">
+                <!-- Upcoming Schedules -->
+                <div>
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+                        <h3 style="color:#444;">Upcoming & Active Activities</h3>
+                        <button class="btn" onclick="openModal()">+ Add Schedule</button>
+                    </div>
+
+                    <div class="schedule-list" id="scheduleList">
+                        <!-- Dynamic content -->
+                    </div>
+                </div>
+
+                <!-- Recurring Tasks -->
+                <div>
+                    <div class="recurring-box">
+                        <h3 style="margin-bottom:10px;">Recurring Tasks</h3>
+                        <div class="recurring-item">
+                            <div class="icon-circle">🚰</div>
+                            <div>
+                                <div style="font-weight:500;">Water Tank Cleaning</div>
+                                <small style="color:#777;">Every 15th of month</small>
+                            </div>
+                        </div>
+                        <div class="recurring-item">
+                            <div class="icon-circle">🍳</div>
+                            <div>
+                                <div style="font-weight:500;">Kitchen Deep Clean</div>
+                                <small style="color:#777;">Every Sunday Night</small>
+                            </div>
+                        </div>
+                        <div class="recurring-item">
+                            <div class="icon-circle">♻️</div>
+                            <div>
+                                <div style="font-weight:500;">Food Waste Management</div>
+                                <small style="color:#777;">Daily @ 10 PM</small>
+                            </div>
+                        </div>
+                        <div class="recurring-item">
+                            <div class="icon-circle">🧹</div>
+                            <div>
+                                <div style="font-weight:500;">General Cleaning</div>
+                                <small style="color:#777;">Mon & Thu @ 10 AM</small>
+                            </div>
+                        </div>
+                        <div class="recurring-item">
+                            <div class="icon-circle">🦟</div>
+                            <div>
+                                <div style="font-weight:500;">Pest Control</div>
+                                <small style="color:#777;">1st of every month</small>
+                            </div>
+                        </div>
+                        <div class="recurring-item">
+                            <div class="icon-circle">🚒</div>
+                            <div>
+                                <div style="font-weight:500;">Fire Safety Audit</div>
+                                <small style="color:#777;">Every 3 months</small>
+                            </div>
+                        </div>
+                        <div class="recurring-item">
+                            <div class="icon-circle">📦</div>
+                            <div>
+                                <div style="font-weight:500;">Inventory Restock</div>
+                                <small style="color:#777;">Every 2 weeks</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Modal -->
+    <div id="scheduleModal" class="modal">
+        <div class="modal-box">
+            <h3>Schedule New activity</h3>
+            <label>Activity Title</label>
+            <input id="sTitle" placeholder="Eg: Kitchen Hood Servicing">
+
+            <label>Area / Block</label>
+            <input id="sArea" placeholder="Eg: Main Kitchen">
+
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+                <div>
+                    <label>Date</label>
+                    <input type="date" id="sDate">
+                </div>
+                <div>
+                    <label>Time</label>
+                    <input type="time" id="sTime">
+                </div>
+            </div>
+
+            <label>Importance</label>
+            <select id="sImportance">
+                <option value="low">Low (Routine)</option>
+                <option value="medium">Medium (Important)</option>
+                <option value="high">High (Critical)</option>
+            </select>
+
+            <div class="modal-actions">
+                <button class="btn-outline" onclick="closeModal()">Cancel</button>
+                <button class="btn" onclick="addSchedule()">Save Schedule</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Initial Data for Demo
+        let schedules = JSON.parse(localStorage.getItem('adminSchedules')) || [
+            { id: 1, title: "Water Tank Cleaning", area: "All Blocks", date: "2024-02-15", time: "09:00", importance: "high", isDone: false },
+            { id: 2, title: "Kitchen Gas Leakage Check", area: "Mess Hall", date: "2024-02-16", time: "08:00", importance: "high", isDone: true },
+            { id: 4, title: "Monthly Food Quality Audit", area: "Dining Hall", date: "2024-02-25", time: "11:00", importance: "medium", isDone: false },
+            { id: 5, title: "Mess Staff Hygiene Training", area: "Conference Room", date: "2024-02-28", time: "15:00", importance: "low", isDone: false },
+            { id: 3, title: "Garden Grass Cutting", area: "Common Area", date: "2024-02-10", time: "10:30", importance: "low", isDone: false }
+        ];
+
+        function renderSchedules() {
+            const list = document.getElementById("scheduleList");
+            list.innerHTML = "";
+            const now = new Date();
+
+            schedules.forEach(s => {
+                const sDateTime = new Date(`${s.date}T${s.time}`);
+                const isPast = sDateTime < now;
+                let status = s.isDone ? "done" : (isPast ? "missed" : "scheduled");
+
+                const dateObj = new Date(s.date);
+                const day = dateObj.getDate();
+                const month = dateObj.toLocaleString('default', { month: 'short' }).toUpperCase();
+
+                const itemClass = status === "missed" ? "missed" : (status === "done" ? "done" : "");
+                const statusLabel = status.charAt(0).toUpperCase() + status.slice(1);
+
+                const html = `
+                    <div class="schedule-item ${itemClass}">
+                        <div style="display:flex; gap:15px; align-items:center;">
+                            <div class="date-badge" style="${status === 'missed' ? 'background:#fdecea; color:#dc3545;' : (status === 'done' ? 'background:#e6f4ea; color:#28a745;' : '')}">
+                                <b>${day}</b>
+                                <span>${month}</span>
+                            </div>
+                            <div>
+                                <div style="font-weight:600; font-size:16px;">${s.title}</div>
+                                <div style="font-size:13px; color:#666;">${s.area} · ${s.time}</div>
+                            </div>
+                        </div>
+                        <div class="item-actions">
+                            <span class="status-pill ${status}">${statusLabel}</span>
+                            ${status === 'missed' ? `<button class="notify-btn" style="display:block" onclick="notifySupervisor('${s.title}')">Notify Supervisor</button>` : ''}
+                            ${status === 'scheduled' ? `<button class="btn-outline" style="font-size:11px; padding:4px 8px;" onclick="markAsDone(${s.id})">Mark Done</button>` : ''}
+                        </div>
+                    </div>
+                `;
+                list.insertAdjacentHTML('beforeend', html);
+            });
+
+            localStorage.setItem('adminSchedules', JSON.stringify(schedules));
+        }
+
+        function openModal() { document.getElementById("scheduleModal").style.display = "flex"; }
+        function closeModal() { document.getElementById("scheduleModal").style.display = "none"; }
+
+        function addSchedule() {
+            const title = sTitle.value;
+            const area = sArea.value;
+            const date = sDate.value;
+            const time = sTime.value;
+            const importance = sImportance.value;
+
+            if (!title || !date) { alert("Please fill Title and Date"); return; }
+
+            const newSchedule = {
+                id: Date.now(),
+                title,
+                area,
+                date,
+                time,
+                importance,
+                isDone: false
+            };
+
+            schedules.unshift(newSchedule);
+            renderSchedules();
+            closeModal();
+            sTitle.value = ""; sArea.value = ""; sDate.value = ""; sTime.value = "";
+        }
+
+        function notifySupervisor(task) {
+            alert(`📢 Notification sent to Supervisor regarding missed task: "${task}"`);
+        }
+
+        function markAsDone(id) {
+            const item = schedules.find(x => x.id === id);
+            if (item) {
+                item.isDone = true;
+                renderSchedules();
+            }
+        }
+
+        // Run render on load
+        window.onload = renderSchedules;
+
+    </script>
+
+</body>
+
+</html>

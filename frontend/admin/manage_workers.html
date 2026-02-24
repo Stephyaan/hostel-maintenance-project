@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Manage Workers | Admin Hub</title>
+    <link rel="stylesheet" href="../static/css/style.css">
+    <script src="../static/js/main.js"></script>
+    <style>
+        :root {
+            --primary: #2b7cff;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --slate-50: #f8fafc;
+            --slate-100: #f1f5f9;
+            --slate-200: #e2e8f0;
+            --slate-600: #475569;
+            --slate-700: #334155;
+        }
+
+        .worker-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 24px;
+            margin-top: 25px;
+        }
+
+        .worker-card {
+            background: #fff;
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+            border: 1px solid var(--slate-100);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .worker-header {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        .worker-avatar {
+            width: 56px;
+            height: 56px;
+            background: var(--slate-100);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            color: var(--primary);
+        }
+
+        .worker-info h3 {
+            font-size: 18px;
+            color: var(--slate-700);
+            margin-bottom: 4px;
+        }
+
+        .worker-info p {
+            font-size: 13px;
+            color: var(--slate-600);
+        }
+
+        .stats-summary {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-top: 15px;
+        }
+
+        .mini-stat {
+            background: var(--slate-50);
+            padding: 12px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .mini-stat b {
+            display: block;
+            font-size: 18px;
+            color: var(--slate-700);
+        }
+
+        .mini-stat span {
+            font-size: 11px;
+            color: var(--slate-600);
+            text-transform: uppercase;
+        }
+
+        .approval-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .btn-approve {
+            flex: 1;
+            background: var(--success);
+            color: #fff;
+            border: none;
+            padding: 10px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .btn-reject {
+            flex: 1;
+            background: var(--danger);
+            color: #fff;
+            border: none;
+            padding: 10px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="app">
+
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <h2>HostelHub</h2>
+            <p class="portal-label">Admin Portal</p>
+            <ul>
+                <li onclick="location.href='dashboard.html'">Dashboard</li>
+                <li onclick="location.href='all_complaints.html'">All Complaints</li>
+                <li class="active">Manage Workers</li>
+                <li onclick="location.href='manage_notices.html'">Manage Notices</li>
+                <li onclick="location.href='schedule.html'">Schedule</li>
+                <li onclick="location.href='settings.html'">Settings</li>
+            </ul>
+            <div class="sidebar-logout" onclick="logout()">
+                Logout
+            </div>
+        </div>
+
+        <!-- Content -->
+        <div class="content">
+            <div class="topbar">
+                <div>
+                    <h2>Staff Management Hub</h2>
+                    <p style="color:#666;">Approve requests and monitor workforce efficiency</p>
+                </div>
+            </div>
+
+            <!-- Approval Requests Section -->
+            <div id="pendingSection" style="display: none; margin-top: 30px;">
+                <h3 style="margin-bottom: 20px; color: var(--warning); display: flex; align-items: center; gap: 10px;">
+                    🛡️ Verification Requests <span id="pendingCount"
+                        style="font-size: 14px; background: var(--warning); color: #fff; padding: 2px 10px; border-radius: 20px;">0</span>
+                </h3>
+                <div id="pendingGrid" class="worker-grid">
+                    <!-- Pending workers here -->
+                </div>
+            </div>
+
+            <h3 style="margin-top: 40px; color: var(--slate-700);">🌍 Active Workforce</h3>
+            <div class="worker-grid" id="workerGrid">
+                <!-- Workers populated by JS -->
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        let allWorkers = [];
+
+        async function loadWorkers() {
+            const workers = await apiCall('workers/', 'GET');
+            if (workers) {
+                allWorkers = workers;
+                renderAll();
+            }
+        }
+
+        // ── Skill → emoji avatar ──────────────────────────────────────────
+        function skillAvatar(skill) {
+            const s = (skill || '').toLowerCase();
+            if (s.includes('plumb')) return '🔧';
+            if (s.includes('electr')) return '⚡';
+            if (s.includes('carpen') || s.includes('wood')) return '🪚';
+            if (s.includes('mason') || s.includes('civil')) return '🧱';
+            if (s.includes('paint')) return '🎨';
+            return '👷';
+        }
+
+        function renderAll() {
+            const grid = document.getElementById('workerGrid');
+            const pendingGrid = document.getElementById('pendingGrid');
+            const pendingSection = document.getElementById('pendingSection');
+
+            const activeWorkers = allWorkers.filter(w => w.is_approved === true);
+            const pendingWorkers = allWorkers.filter(w => w.is_approved === false);
+
+            // Render active
+            if (activeWorkers.length === 0) {
+                grid.innerHTML = `<p style="grid-column:1/-1; text-align:center; padding:40px; color:#94a3b8;">No active staff found.</p>`;
+            } else {
+                grid.innerHTML = activeWorkers.map(w => `
+                    <div class="worker-card">
+                        <div class="worker-header">
+                            <div class="worker-avatar">${skillAvatar(w.skill)}</div>
+                            <div class="worker-info">
+                                <h3>${w.name}</h3>
+                                <p>${w.skill}</p>
+                            </div>
+                        </div>
+                        <div class="stats-summary">
+                            <div class="mini-stat"><b>${w.is_available ? 'FREE' : 'BUSY'}</b><span>Status</span></div>
+                            <div class="mini-stat"><b>100%</b><span>SLA Score</span></div>
+                        </div>
+                    </div>
+                `).join('');
+            }
+
+            // Render pending
+            if (pendingWorkers.length > 0) {
+                pendingSection.style.display = 'block';
+                document.getElementById('pendingCount').innerText = pendingWorkers.length;
+                pendingGrid.innerHTML = pendingWorkers.map(w => `
+                    <div class="worker-card" style="border: 2px dashed var(--warning);">
+                        <div class="worker-header">
+                            <div class="worker-avatar">${skillAvatar(w.skill)}</div>
+                            <div class="worker-info">
+                                <h3>${w.name}</h3>
+                                <p>${w.skill}</p>
+                            </div>
+                        </div>
+                        <p style="font-size: 12px; color: #64748b;">Requested by: <b>Supervisor</b></p>
+                        <div class="approval-actions">
+                            <button class="btn-approve" onclick="approveWorker(${w.id})">Approve</button>
+                            <button class="btn-reject" onclick="rejectWorker(${w.id})">Reject</button>
+                        </div>
+                    </div>
+                `).join('');
+            } else {
+                pendingSection.style.display = 'none';
+            }
+        }
+
+        async function approveWorker(id) {
+            const updated = await apiCall(`workers/${id}/`, 'PATCH', { is_approved: true });
+            if (updated) {
+                alert(`Staff member approved and activated.`);
+                loadWorkers();
+            }
+        }
+
+        async function rejectWorker(id) {
+            if (confirm("Are you sure you want to reject and delete this registration?")) {
+                const ok = await apiCall(`workers/${id}/`, 'DELETE');
+                if (ok) {
+                    loadWorkers();
+                }
+            }
+        }
+
+        window.onload = loadWorkers;
+    </script>
+
+</body>
+
+</html>

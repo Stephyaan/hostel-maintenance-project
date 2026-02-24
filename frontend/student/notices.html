@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Notices</title>
+    <link rel="stylesheet" href="../static/css/style.css">
+    <script src="../static/js/main.js"></script>
+    <style>
+        .notice {
+            padding: 16px;
+            border-left: 6px solid;
+            border-radius: 8px;
+            margin-bottom: 16px;
+        }
+
+        .info {
+            background: #e7f3ff;
+            border-color: #2b7cff;
+        }
+
+        .warning {
+            background: #fff4e5;
+            border-color: #f0ad4e;
+        }
+
+        .success {
+            background: #e6f4ea;
+            border-color: #28a745;
+        }
+
+        .danger {
+            background: #fdecea;
+            border-color: #dc3545;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="app">
+
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <h2>HostelHub</h2>
+            <p class="portal-label">Student Portal</p>
+
+            <ul>
+                <li onclick="location.href='dashboard.html'">Dashboard</li>
+                <li onclick="location.href='complaints.html'">My Complaints</li>
+                <li onclick="location.href='request_resources.html'">Request Resources</li>
+                <li onclick="location.href='notices.html'">Notices</li>
+                <li onclick="location.href='emergency.html'">Emergency</li>
+            </ul>
+            <div class="sidebar-logout" onclick="logout()">
+                Logout
+            </div>
+        </div>
+
+
+
+        <!-- Content -->
+        <div class="content">
+            <h2>Notice Board</h2>
+
+            <div id="noticesList">
+                <p style="text-align:center; padding: 40px; color: #94a3b8;">Loading notices...</p>
+            </div>
+
+        </div>
+    </div>
+    <script>
+        window.onload = async function () {
+            syncSidebarSettings();
+
+            const notices = await apiCall('notices/', 'GET');
+            const container = document.getElementById('noticesList');
+
+            if (notices && notices.length > 0) {
+                container.innerHTML = notices.map(n => {
+                    const category = n.category?.toLowerCase() || 'info';
+                    const dateStr = new Date(n.created_at).toLocaleDateString();
+                    return `
+                        <div class="notice ${category}">
+                            <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+                                <b>${n.title}</b>
+                                <small style="color:#64748b;">${dateStr}</small>
+                            </div>
+                            <p style="margin: 8px 0 0 0; font-size:14px; color:#334155;">${n.content}</p>
+                        </div>
+                    `;
+                }).join('');
+            } else {
+                container.innerHTML = '<p style="text-align:center; padding: 40px; color: #94a3b8; font-style:italic;">No active notices at this time.</p>';
+            }
+        }
+    </script>
+</body>
+
+</html>

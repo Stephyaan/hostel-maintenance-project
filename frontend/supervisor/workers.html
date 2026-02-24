@@ -1,0 +1,671 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Manage Workers | Supervisor</title>
+    <link rel="stylesheet" href="../static/css/style.css">
+    <script src="../static/js/main.js"></script>
+    <style>
+        :root {
+            --primary: #2b7cff;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --slate-50: #f8fafc;
+            --slate-100: #f1f5f9;
+            --slate-200: #e2e8f0;
+            --slate-600: #475569;
+            --slate-700: #334155;
+        }
+
+        .worker-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 24px;
+            margin-top: 25px;
+        }
+
+        .worker-card {
+            background: #fff;
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+            border: 1px solid var(--slate-100);
+            transition: all 0.3s ease;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .worker-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.08);
+            border-color: var(--primary);
+        }
+
+        .worker-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background: var(--primary);
+            opacity: 0;
+            transition: 0.3s;
+        }
+
+        .worker-card:hover::before {
+            opacity: 1;
+        }
+
+        .worker-header {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        .worker-avatar {
+            width: 56px;
+            height: 56px;
+            background: var(--slate-100);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            color: var(--primary);
+        }
+
+        .worker-info h3 {
+            font-size: 18px;
+            color: var(--slate-700);
+            margin-bottom: 4px;
+        }
+
+        .worker-info p {
+            font-size: 13px;
+            color: var(--slate-600);
+        }
+
+        .stats-summary {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-top: 15px;
+        }
+
+        .mini-stat {
+            background: var(--slate-50);
+            padding: 12px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .mini-stat b {
+            display: block;
+            font-size: 18px;
+            color: var(--slate-700);
+        }
+
+        .mini-stat span {
+            font-size: 11px;
+            color: var(--slate-600);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .performance-bar {
+            margin-top: 20px;
+        }
+
+        .p-label {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            font-weight: 600;
+            margin-bottom: 6px;
+        }
+
+        .bar-outer {
+            height: 6px;
+            background: var(--slate-100);
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .bar-inner {
+            height: 100%;
+            background: var(--primary);
+            border-radius: 3px;
+        }
+
+        /* Sidebar Tabs */
+        .panel-tabs {
+            display: flex;
+            gap: 20px;
+            border-bottom: 2px solid var(--slate-100);
+            margin-bottom: 25px;
+        }
+
+        .panel-tab {
+            padding: 10px 5px;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--slate-600);
+            cursor: pointer;
+            position: relative;
+            transition: 0.2s;
+        }
+
+        .panel-tab.active {
+            color: var(--primary);
+        }
+
+        .panel-tab.active::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: var(--primary);
+        }
+
+        /* Side Panel */
+        .side-panel {
+            position: fixed;
+            top: 0;
+            right: -450px;
+            width: 450px;
+            height: 100vh;
+            background: #fff;
+            box-shadow: -10px 0 40px rgba(0, 0, 0, 0.1);
+            z-index: 1001;
+            transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .side-panel.open {
+            right: 0;
+        }
+
+        .panel-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 23, 42, 0.3);
+            backdrop-filter: blur(4px);
+            z-index: 1000;
+            display: none;
+            opacity: 0;
+            transition: 0.3s;
+        }
+
+        .panel-overlay.show {
+            display: block;
+            opacity: 1;
+        }
+
+        .panel-header {
+            padding: 30px;
+            border-bottom: 1px solid var(--slate-100);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .panel-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 30px;
+        }
+
+        .task-detail-card {
+            background: var(--slate-50);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 16px;
+            border-left: 4px solid var(--primary);
+        }
+
+        .task-tag {
+            font-size: 10px;
+            font-weight: 700;
+            padding: 3px 8px;
+            border-radius: 4px;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+            display: inline-block;
+        }
+
+        .tag-ontime {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .tag-delayed {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .tag-upcoming {
+            background: #e0f2fe;
+            color: #0369a1;
+        }
+
+        .time-meta {
+            display: flex;
+            gap: 15px;
+            margin-top: 10px;
+            font-size: 12px;
+            color: #64748b;
+        }
+
+        .time-meta b {
+            color: #334155;
+        }
+
+        .close-panel {
+            cursor: pointer;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            background: var(--slate-100);
+            transition: 0.2s;
+        }
+
+        .close-panel:hover {
+            background: var(--slate-200);
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="app">
+
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <h2>HostelHub</h2>
+            <p style="color:#777;font-size:14px;">Supervisor Portal</p>
+            <ul>
+                <li onclick="location.href='dashboard.html'">Dashboard</li>
+                <li onclick="location.href='complaints.html'">Lifecycle Manager</li>
+                <li class="active">Manage Workers</li>
+                <li onclick="location.href='notices.html'">Notices</li>
+                <li onclick="location.href='reports.html'">Reports</li>
+            </ul>
+            <div class="sidebar-logout" onclick="logout()">
+                Logout
+            </div>
+        </div>
+
+        <!-- Content -->
+        <div class="content">
+            <div class="topbar">
+                <div>
+                    <h2>Maintenance Workspace</h2>
+                    <p style="color:#666;">Monitor staff performance and workload distribution</p>
+                </div>
+                <div style="display: flex; gap: 10px;">
+                    <button class="btn-outline">📊 Export Stats</button>
+                    <button class="btn" onclick="openAddWorkerModal()">+ Add Staff
+                        Info</button>
+                </div>
+            </div>
+
+            <!-- Pending Approvals Section -->
+            <div id="pendingSection" style="display: none; margin-bottom: 30px;">
+                <h4 style="margin-bottom: 15px; font-size: 14px; color: var(--slate-600); text-transform: uppercase;">
+                    Awaiting Admin Approval</h4>
+                <div id="pendingGrid" class="worker-grid"
+                    style="grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); opacity: 0.7;">
+                    <!-- Pending workers here -->
+                </div>
+                <hr style="margin-top: 30px; border: 0; border-top: 1px solid var(--slate-200);">
+            </div>
+
+            <div class="worker-grid" id="workerGrid">
+                <!-- Workers populated by JS -->
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Registration Modal -->
+    <div id="addWorkerModal" class="modal">
+        <div class="modal-box" style="width: 450px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h3 style="margin:0;">Register New Staff</h3>
+                <span style="cursor:pointer;" onclick="closeAddWorkerModal()">✕</span>
+            </div>
+
+            <label>Full Name</label>
+            <input type="text" id="newWorkerName" placeholder="e.g. Anil Kumar">
+
+            <label>Primary Role/Specialization</label>
+            <select id="newWorkerRole">
+                <option value="Plumber">Plumber</option>
+                <option value="Electrician">Electrician</option>
+                <option value="Carpenter">Carpenter</option>
+                <option value="Mason">Mason</option>
+            </select>
+
+            <div id="registrationNotice"
+                style="background: #fdf2f2; padding: 12px; border-radius: 8px; border: 1px solid #fecaca; margin: 15px 0;">
+                <p id="regNoticeText" style="font-size: 12px; color: #991b1b; margin: 0;"><b>Note:</b> Adding a worker
+                    requires Admin approval. Once submitted, it will be sent to the Admin dashboard for verification.
+                </p>
+            </div>
+
+            <div class="modal-actions">
+                <button class="btn-outline" onclick="closeAddWorkerModal()">Cancel</button>
+                <button class="btn" onclick="requestApproval()">Send for Approval</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Side Panel Structure -->
+    <div class="panel-overlay" id="overlay" onclick="closeWorkerPanel()"></div>
+    <div class="side-panel" id="sidePanel">
+        <div class="panel-header">
+            <div>
+                <h3 id="panel-worker-name">Worker Name</h3>
+                <p id="panel-worker-role" style="font-size: 13px; color: #64748b;">Specialization</p>
+            </div>
+            <div class="close-panel" onclick="closeWorkerPanel()">✕</div>
+        </div>
+        <div class="panel-content">
+            <div class="panel-tabs">
+                <div class="panel-tab active" id="tab-pending" onclick="switchWorkerTab('pending')">Pending Work</div>
+                <div class="panel-tab" id="tab-history" onclick="switchWorkerTab('history')">History</div>
+            </div>
+
+            <h4 id="workload-heading"
+                style="margin-bottom: 20px; font-size: 14px; color: #1e293b; text-transform: uppercase; letter-spacing: 1px;">
+                Current Pending Workload (0)</h4>
+
+            <div id="taskDetails">
+                <!-- Tasks populated by JS -->
+            </div>
+        </div>
+    </div>
+    <!-- Reassignment Modal -->
+    <div id="reassignModal" class="modal">
+        <div class="modal-box" style="width: 480px; max-width: 95%;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h3 style="margin:0;">Reassign Task</h3>
+                <span style="cursor:pointer;" onclick="closeReassignModal()">✕</span>
+            </div>
+
+            <div id="reassignTaskInfo"
+                style="background: var(--slate-50); padding: 15px; border-radius: 10px; border-left: 4px solid var(--primary); margin-bottom: 20px;">
+                <p style="font-size: 11px; color: var(--slate-600); text-transform: uppercase; margin: 0 0 5px 0;">Task
+                    to
+                    Move</p>
+                <h4 id="move-task-title" style="margin: 0; color: var(--slate-700);">Fix leakage in Block A</h4>
+                <p id="move-task-id" style="font-size: 12px; color: #64748b; margin: 5px 0 0 0;">ID: CMP-201</p>
+            </div>
+
+            <label>Select New Staff Member</label>
+            <p style="font-size: 12px; color: #64748b; margin-bottom: 15px;">Smart Suggestions: Showing workers with
+                matching skills and manageable workloads.</p>
+
+            <div id="candidateList"
+                style="max-height: 250px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px;">
+                <!-- Candidates populated by JS -->
+            </div>
+
+            <div class="modal-actions" style="margin-top: 25px;">
+                <button class="btn-outline" onclick="closeReassignModal()">Keep Original</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let workerData = [];          // live from API
+        let allComplaints = [];       // live from API — for per-worker task view
+        let currentPanelWorkerId = null;
+        let currentPanelTab = 'pending';
+
+        // ── Skill → emoji avatar ──────────────────────────────────────────
+        function skillAvatar(skill) {
+            const s = (skill || '').toLowerCase();
+            if (s.includes('plumb')) return '🔧';
+            if (s.includes('electr')) return '⚡';
+            if (s.includes('carpen') || s.includes('wood')) return '🪚';
+            if (s.includes('mason') || s.includes('civil')) return '🧱';
+            if (s.includes('paint')) return '🎨';
+            return '👷';
+        }
+
+        // ── Load data from API ────────────────────────────────────────────
+        async function loadData() {
+            const [workers, complaints] = await Promise.all([
+                apiCall('workers/', 'GET'),
+                apiCall('complaints/', 'GET')
+            ]);
+            workerData = workers || [];
+            allComplaints = complaints || [];
+            renderWorkers();
+        }
+
+        // ── Open/close Add Worker modal ───────────────────────────────────
+        function openAddWorkerModal() {
+            document.getElementById('addWorkerModal').style.display = 'flex';
+        }
+        function closeAddWorkerModal() {
+            document.getElementById('addWorkerModal').style.display = 'none';
+        }
+
+        // ── Add worker via API ────────────────────────────────────────────
+        async function requestApproval() {
+            const name = document.getElementById('newWorkerName').value.trim();
+            const skill = document.getElementById('newWorkerRole').value;
+            const phone = '0000000000';
+
+            if (!name) { alert('Please enter a name'); return; }
+
+            // Fetch settings to see if it will be auto-approved
+            const settings = await apiCall('settings/', 'GET');
+            const autoReg = settings.find(s => s.key === 'autonomous_staff_registration')?.value !== false;
+
+            const created = await apiCall('workers/', 'POST', {
+                name: name,
+                skill: skill,
+                phone: phone,
+                is_available: true
+            });
+
+            if (created) {
+                if (autoReg) {
+                    alert(`${name} has been added directly to the staff list.`);
+                    workerData.push(created);
+                } else {
+                    alert(`Request sent! ${name} will appear once the Admin approves the registration.`);
+                }
+                closeAddWorkerModal();
+                document.getElementById('newWorkerName').value = '';
+                renderWorkers();
+            }
+        }
+
+        // ── Render worker grid ────────────────────────────────────────────
+        function renderWorkers() {
+            const grid = document.getElementById('workerGrid');
+
+            if (workerData.length === 0) {
+                grid.innerHTML = `<div style="grid-column:1/-1; text-align:center; padding:60px; color:#94a3b8;">
+                    No workers registered yet. Click <b>+ Add Staff Info</b> to add one.
+                </div>`;
+                return;
+            }
+
+            grid.innerHTML = workerData.map(w => generateWorkerHTML(w)).join('');
+
+            // Hide the pending section (we no longer use localStorage pending)
+            document.getElementById('pendingSection').style.display = 'none';
+        }
+
+        function generateWorkerHTML(w) {
+            // Count complaints assigned to this worker
+            const assigned = allComplaints.filter(c => c.assigned_worker === w.id);
+            const pending = assigned.filter(c => c.status !== 'Resolved').length;
+            const completed = assigned.filter(c => c.status === 'Resolved').length;
+            const avatar = skillAvatar(w.skill);
+            const statusColor = w.is_available ? 'var(--success)' : '#cbd5e1';
+            const statusText = w.is_available ? 'Available' : 'Busy';
+
+            return `
+                <div class="worker-card" onclick="openWorkerPanel(${w.id})">
+                    <div style="position:absolute; top:15px; right:15px; display:flex; align-items:center; gap:5px;">
+                        <span style="width:8px; height:8px; border-radius:50%; background:${statusColor}"></span>
+                        <span style="font-size:10px; color:#64748b; font-weight:600;">${statusText}</span>
+                    </div>
+                    <div class="worker-header">
+                        <div class="worker-avatar">${avatar}</div>
+                        <div class="worker-info">
+                            <h3>${w.name}</h3>
+                            <p>${w.skill}</p>
+                        </div>
+                    </div>
+
+                    <div class="stats-summary">
+                        <div class="mini-stat">
+                            <b>${pending}</b>
+                            <span>Pending</span>
+                        </div>
+                        <div class="mini-stat">
+                            <b>${completed}</b>
+                            <span>Resolved</span>
+                        </div>
+                    </div>
+
+                    <div class="performance-bar" style="margin-top:20px;">
+                        <div class="p-label">
+                            <span>Workload</span>
+                            <span style="color:${pending > 3 ? 'var(--warning)' : 'var(--success)'}">
+                                ${pending === 0 ? 'Free' : pending + ' task' + (pending > 1 ? 's' : '')}
+                            </span>
+                        </div>
+                        <div class="bar-outer">
+                            <div class="bar-inner" style="width:${Math.min(pending * 20, 100)}%; background:${pending > 3 ? 'var(--warning)' : 'var(--success)'}"></div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // ── Worker side panel ─────────────────────────────────────────────
+        function openWorkerPanel(id) {
+            currentPanelWorkerId = id;
+            currentPanelTab = 'pending';
+            document.getElementById('tab-pending').classList.add('active');
+            document.getElementById('tab-history').classList.remove('active');
+            renderPanelContent();
+            document.getElementById('overlay').classList.add('show');
+            document.getElementById('sidePanel').classList.add('open');
+        }
+
+        function switchWorkerTab(tab) {
+            currentPanelTab = tab;
+            document.getElementById('tab-pending').classList.toggle('active', tab === 'pending');
+            document.getElementById('tab-history').classList.toggle('active', tab === 'history');
+            renderPanelContent();
+        }
+
+        function renderPanelContent() {
+            const w = workerData.find(x => x.id === currentPanelWorkerId);
+            if (!w) return;
+
+            document.getElementById('panel-worker-name').innerText = w.name;
+            document.getElementById('panel-worker-role').innerText = w.skill;
+
+            const heading = document.getElementById('workload-heading');
+            const taskContainer = document.getElementById('taskDetails');
+
+            // Get complaints assigned to this worker
+            const assigned = allComplaints.filter(c => c.assigned_worker === w.id);
+            const pending = assigned.filter(c => c.status !== 'Resolved');
+            const resolved = assigned.filter(c => c.status === 'Resolved');
+
+            if (currentPanelTab === 'pending') {
+                heading.innerText = `Current Pending Workload (${pending.length})`;
+
+                if (pending.length === 0) {
+                    taskContainer.innerHTML = '<div style="text-align:center; color:#94a3b8; padding-top:40px;">No current assignments for this staff member.</div>';
+                    return;
+                }
+
+                taskContainer.innerHTML = pending.map(c => {
+                    const date = new Date(c.created_at).toLocaleDateString();
+                    const isInProgress = c.status === 'In Progress';
+                    const perfClass = isInProgress ? 'ontime' : 'upcoming';
+                    const perfColor = isInProgress ? 'var(--success)' : 'var(--primary)';
+                    return `
+                        <div class="task-detail-card" style="border-left-color:${perfColor}">
+                            <span class="task-tag tag-${perfClass}">${c.status}</span>
+                            <h3 style="margin:5px 0;">${c.title}</h3>
+                            <p style="font-size:12px; color:#64748b;">Room: <b>${c.room}</b> · Priority: <b>${c.priority}</b></p>
+                            <div class="time-meta">
+                                <div>Filed: <b>${date}</b></div>
+                                <div>By: <b>${c.student_name || 'Student'}</b></div>
+                            </div>
+                        </div>`;
+                }).join('');
+
+            } else {
+                heading.innerText = `Work History (${resolved.length} resolved)`;
+
+                if (resolved.length === 0) {
+                    taskContainer.innerHTML = '<div style="text-align:center; color:#94a3b8; padding-top:40px;">No resolved tasks yet.</div>';
+                    return;
+                }
+
+                taskContainer.innerHTML = resolved.map(c => {
+                    const date = new Date(c.updated_at).toLocaleDateString();
+                    return `
+                        <div class="task-detail-card" style="border-left-color:var(--success); opacity:0.85;">
+                            <span class="task-tag" style="background:#ecfdf5; color:#059669;">Resolved</span>
+                            <h3 style="margin:5px 0; color:var(--slate-600);">${c.title}</h3>
+                            <p style="font-size:12px; color:#64748b;">Room: <b>${c.room}</b></p>
+                            <div style="margin-top:10px; font-size:11px; color:#94a3b8;">
+                                Closed: <b style="color:var(--slate-700)">${date}</b>
+                                ${c.feedback_rating ? ` · Rating: <b>${c.feedback_rating}/5</b>` : ''}
+                            </div>
+                        </div>`;
+                }).join('');
+            }
+        }
+
+        function closeWorkerPanel() {
+            document.getElementById('overlay').classList.remove('show');
+            document.getElementById('sidePanel').classList.remove('open');
+        }
+
+        function getPerfColor(perf) {
+            if (perf === 'ontime') return 'var(--success)';
+            if (perf === 'delayed') return 'var(--danger)';
+            if (perf === 'upcoming') return 'var(--primary)';
+            return '#cbd5e1';
+        }
+
+        // Reassign modal stubs (kept for UI compatibility)
+        function initiateReassign(taskId, wId) { alert('Reassignment coming soon.'); }
+        function closeReassignModal() { document.getElementById('reassignModal').style.display = 'none'; }
+        function executeReassignment(toWorkerId) { closeReassignModal(); }
+
+        window.onload = async () => {
+            await loadData();
+            syncSidebarSettings();
+        };
+    </script>
+
+</body>
+
+</html>

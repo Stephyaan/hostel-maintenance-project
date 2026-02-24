@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>HostelHub | Login</title>
+    <link rel="stylesheet" href="static/css/style.css">
+</head>
+
+<body>
+
+    <div class="app" style="justify-content:center;align-items:center;">
+
+        <div class="card" style="width:420px;">
+            <h2 style="text-align:center;">Welcome Back</h2>
+            <p style="text-align:center;">Select Role</p>
+
+            <label>Role</label>
+            <select id="role">
+                <option value="student">Student</option>
+                <option value="supervisor">Maintenance Supervisor</option>
+                <option value="admin">Admin</option>
+            </select>
+
+            <label>Username</label>
+            <input type="text" id="username" placeholder="Username">
+
+            <label>Password</label>
+            <input type="password" id="password" placeholder="Password">
+
+            <button class="btn" onclick="performLogin()">Login</button>
+        </div>
+
+    </div>
+
+    <!-- Import Main JS which contains apiCall -->
+    <script src="static/js/main.js"></script>
+
+    <script>
+        async function performLogin() {
+            const role = document.getElementById("role").value;
+            const username = document.getElementById("username").value;
+            const password = document.getElementById("password").value;
+
+            if (!username || !password) {
+                alert("Please enter username and password");
+                return;
+            }
+
+            try {
+                const response = await apiCall("auth/login/", "POST", { username, password });
+
+                if (response && response.token) {
+                    localStorage.setItem("token", response.token);
+                    localStorage.setItem("user", JSON.stringify(response.user));
+
+                    // Verify role matches
+                    if (response.user.role !== role) {
+                        alert(`Warning: You logged in as ${response.user.role}, but selected ${role}. Redirecting to your actual dashboard.`);
+                    }
+
+                    if (response.user.role === "student") location.href = "student/dashboard.html";
+                    else if (response.user.role === "supervisor") location.href = "supervisor/dashboard.html";
+                    else if (response.user.role === "admin") location.href = "admin/dashboard.html";
+                } else {
+                    alert("Login failed: " + (response ? response.error : "Unknown error"));
+                }
+            } catch (e) {
+                console.error(e);
+                alert("Login failed: " + e.message);
+            }
+        }
+    </script>
+
+</body>
+
+</html>
