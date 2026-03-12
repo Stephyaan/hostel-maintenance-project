@@ -2,9 +2,10 @@
 <html>
 
 <head>
+    <meta charset="UTF-8">
     <title>Admin Dashboard | HostelHub</title>
-    <link rel="stylesheet" href="../static/css/style.css">
-    <script src="../static/js/main.js"></script>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <script src="/static/js/main.js"></script>
     <style>
         .dashboard-grid {
             display: grid;
@@ -171,19 +172,19 @@
 
 <body>
 
-    <div class="app">
+    <div class="app admin-app">
 
         <!-- SIDEBAR -->
         <div class="sidebar">
             <h2>HostelHub</h2>
             <p class="portal-label">Admin Portal</p>
             <ul>
-                <li class="active">Dashboard</li>
-                <li onclick="location.href='all_complaints.html'">All Complaints</li>
-                <li onclick="location.href='manage_workers.html'">Manage Workers</li>
-                <li onclick="location.href='manage_notices.html'">Manage Notices</li>
-                <li onclick="location.href='schedule.html'">Schedule</li>
-                <li onclick="location.href='settings.html'">Settings</li>
+                <li class="active" onclick="location.href='/admin/dashboard.html'">Dashboard</li>
+                <li onclick="location.href='/admin/all_complaints.html'">All Complaints</li>
+                <li onclick="location.href='/admin/manage_workers.html'">Manage Workers</li>
+                <li onclick="location.href='/admin/manage_notices.html'">Manage Notices</li>
+                <li onclick="location.href='/admin/schedule.html'">Schedule</li>
+                <li onclick="location.href='/admin/settings.html'">Settings</li>
             </ul>
             <div class="sidebar-logout" onclick="logout()">
                 Logout
@@ -258,29 +259,8 @@
                         <div class="card-header">
                             <h3>📁 Maintenance Category Breakdown</h3>
                         </div>
-                        <div class="heatmap-item">
-                            <div class="heatmap-label"><span>Plumbing</span><span>42%</span></div>
-                            <div class="bar-bg">
-                                <div class="bar-fill" style="width: 42%; background: #ef4444;"></div>
-                            </div>
-                        </div>
-                        <div class="heatmap-item">
-                            <div class="heatmap-label"><span>Electrical</span><span>28%</span></div>
-                            <div class="bar-bg">
-                                <div class="bar-fill" style="width: 28%; background: #f59e0b;"></div>
-                            </div>
-                        </div>
-                        <div class="heatmap-item">
-                            <div class="heatmap-label"><span>Furniture / Carpentry</span><span>18%</span></div>
-                            <div class="bar-bg">
-                                <div class="bar-fill" style="width: 18%; background: #3b82f6;"></div>
-                            </div>
-                        </div>
-                        <div class="heatmap-item" style="margin-bottom: 0;">
-                            <div class="heatmap-label"><span>Masonry / Walls</span><span>12%</span></div>
-                            <div class="bar-bg">
-                                <div class="bar-fill" style="width: 12%; background: #64748b;"></div>
-                            </div>
+                        <div id="categoryBreakdown">
+                            <p style="color:#94a3b8; font-style:italic; text-align:center;">Loading...</p>
                         </div>
                     </div>
 
@@ -296,37 +276,8 @@
                                 All</a>
                         </div>
 
-                        <div class="task-item">
-                            <div class="task-date">
-                                <b>18</b>
-                                <span>Feb</span>
-                            </div>
-                            <div class="task-info">
-                                <b>Water Tank Cleaning</b>
-                                <span>All Blocks · 09:00 AM</span>
-                            </div>
-                        </div>
-
-                        <div class="task-item">
-                            <div class="task-date">
-                                <b>22</b>
-                                <span>Feb</span>
-                            </div>
-                            <div class="task-info">
-                                <b>Kitchen Hood Service</b>
-                                <span>Main Mess · 11:30 AM</span>
-                            </div>
-                        </div>
-
-                        <div class="task-item" style="border: none;">
-                            <div class="task-date">
-                                <b>01</b>
-                                <span>Mar</span>
-                            </div>
-                            <div class="task-info">
-                                <b>Pest Control Cycle</b>
-                                <span>Block A & B · 08:00 AM</span>
-                            </div>
+                        <div id="upcomingTasksBox">
+                            <p style="color:#94a3b8; font-style:italic; text-align:center;">Loading...</p>
                         </div>
                     </div>
 
@@ -338,6 +289,12 @@
                             <span class="badge-count" id="newReportsBadge">0</span>
                             <b>New Reports</b>
                             <span>Assign Workers</span>
+                        </div>
+                        <div class="action-mini" onclick="location.href='manage_workers.html'">
+                            <span class="badge-count" id="pendingWorkersBadge"
+                                style="background:#fffbeb; color:#92400e;">0</span>
+                            <b>Staff Verification</b>
+                            <span>Awaiting Approval</span>
                         </div>
                         <div class="action-mini" onclick="location.href='manage_notices.html'">
                             <span class="badge-count" style="background:#e0f2fe; color:#0369a1">1</span>
@@ -355,16 +312,22 @@
 
     <script>
         window.onload = async function () {
-            // Fetch all data
-            const [complaints, notices] = await Promise.all([
+            // Fetch all data in parallel
+            const [complaints, notices, workers, schedules, categories, health] = await Promise.all([
                 apiCall('complaints/', 'GET'),
-                apiCall('notices/', 'GET')
+                apiCall('notices/', 'GET'),
+                apiCall('workers/', 'GET'),
+                apiCall('schedules/', 'GET'),
+                apiCall('categories/', 'GET'),
+                apiCall('system-health/', 'GET')
             ]);
 
+            // 1. STAT BOXES & EFFICIENCY
             if (complaints) {
                 const total = complaints.length;
                 const inProgress = complaints.filter(c => c.status === 'In Progress').length;
                 const awaitingApproval = complaints.filter(c => c.status === 'Awaiting Approval').length;
+                const pending = complaints.filter(c => c.status === 'Pending').length;
                 const resolved = complaints.filter(c => c.status === 'Resolved').length;
                 const openIssues = complaints.filter(c => c.status !== 'Resolved').length;
 
@@ -372,20 +335,120 @@
                 document.getElementById('openIssues').innerText = openIssues;
                 document.getElementById('inProgress').innerText = inProgress;
 
-                // Calculate Avg Rating
+                // Avg Rating
                 const rated = complaints.filter(c => c.feedback_rating);
                 if (rated.length > 0) {
                     const avg = rated.reduce((acc, c) => acc + c.feedback_rating, 0) / rated.length;
                     document.getElementById('avgRating').innerText = avg.toFixed(1);
                 }
 
-                // Quick Action Badges
-                document.getElementById('newReportsBadge').innerText = awaitingApproval;
+                // Badges
+                document.getElementById('newReportsBadge').innerText = awaitingApproval + pending;
+
+                // Efficiency (Logic-based from API)
+                if (health) {
+                    document.querySelector('.efficiency-grid').innerHTML = `
+                        <div class="efficiency-box">
+                            <b>${health.avg_resolution_time || '—'}</b>
+                            <span>Avg. Resolution Time</span>
+                        </div>
+                        <div class="efficiency-box">
+                            <b>${health.operational_sla}%</b>
+                            <span>SLA Compliance</span>
+                        </div>
+                        <div class="efficiency-box">
+                            <b>${resolved}</b>
+                            <span>Resolved Tasks</span>
+                        </div>
+                        <div class="efficiency-box">
+                            <b>${health.pending_issues}</b>
+                            <span>Pending Issues</span>
+                        </div>
+                    `;
+                    
+                    // Update Stat Boxes if needed (Avg Rating)
+                    document.getElementById('avgRating').innerText = health.avg_feedback.toFixed(1);
+                }
+
+                // 2. CATEGORY BREAKDOWN
+                const breakdownBox = document.getElementById('categoryBreakdown');
+                if (breakdownBox && Array.isArray(categories)) {
+                    const counts = {};
+                    categories.forEach(cat => counts[cat.name] = 0);
+                    counts['Uncategorized'] = 0;
+
+                    if (Array.isArray(complaints)) {
+                        complaints.forEach(c => {
+                            const cat = c.category || 'Uncategorized';
+                            counts[cat] = (counts[cat] || 0) + 1;
+                        });
+                    }
+
+                    const catColors = ['#ef4444', '#f59e0b', '#3b82f6', '#10b981', '#6366f1', '#8b5cf6', '#ec4899'];
+                    const categoriesWithUncat = categories.concat([{name:'Uncategorized'}]);
+                    breakdownBox.innerHTML = categoriesWithUncat.map((cat, i) => {
+                        const count = counts[cat.name] || 0;
+                        const pct = total > 0 ? Math.round((count / total) * 100) : 0;
+                        const color = catColors[i % catColors.length];
+                        if (total === 0 && cat.name !== 'Uncategorized') return ''; // Don't show if zero
+                        return `
+                            <div class="heatmap-item">
+                                <div class="heatmap-label"><span>${cat.name}</span><span>${pct}% (${count})</span></div>
+                                <div class="bar-bg">
+                                    <div class="bar-fill" style="width: ${Math.max(pct, 2)}%; background: ${color};"></div>
+                                </div>
+                            </div>`;
+                    }).join('');
+                }
             }
 
+            // 3. WORKERS BADGE
+            if (workers) {
+                const pending = workers.filter(w => w.is_approved === false).length;
+                document.getElementById('pendingWorkersBadge').innerText = pending;
+            }
+
+            // 4. NOTICES BADGE
             if (notices) {
-                // Example: counting active notices
-                // Assuming you have a badge for that too
+                const unapproved = notices.filter(n => !n.is_approved).length;
+                const noticeBadge = document.querySelector('.action-mini:nth-child(4) .badge-count');
+                if (noticeBadge) noticeBadge.innerText = unapproved;
+            }
+
+            // 5. UPCOMING TASKS
+            const tasksBox = document.getElementById('upcomingTasksBox');
+            if (schedules && Array.isArray(schedules)) {
+                const todayStr = new Date().toISOString().split('T')[0];
+                // Filter: not done, today or future. Sort: earliest first. Take 3.
+                const upcoming = schedules
+                    .filter(s => !s.is_done && s.date >= todayStr)
+                    .sort((a, b) => a.date.localeCompare(b.date) || (a.time || '').localeCompare(b.time || ''))
+                    .slice(0, 3);
+
+                if (upcoming.length > 0) {
+                    const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+                    tasksBox.innerHTML = upcoming.map((s, i) => {
+                        const d = new Date(s.date + 'T00:00:00');
+                        const day = d.getDate();
+                        const mon = months[d.getMonth()];
+                        const isLast = i === upcoming.length - 1;
+                        return `
+                            <div class="task-item" ${isLast ? 'style="border:none;"' : ''}>
+                                <div class="task-date">
+                                    <b>${day}</b>
+                                    <span>${mon}</span>
+                                </div>
+                                <div class="task-info">
+                                    <b>${s.title}</b>
+                                    <span>${s.area || 'All Area'}${s.time ? ' · ' + s.time : ''}</span>
+                                </div>
+                            </div>`;
+                    }).join('');
+                } else {
+                    tasksBox.innerHTML = '<p style="color:#94a3b8; font-style:italic; text-align:center; padding:10px;">No upcoming tasks</p>';
+                }
+            } else {
+                tasksBox.innerHTML = '<p style="color:#94a3b8; font-style:italic; text-align:center; padding:10px;">No scheduled tasks</p>';
             }
         };
     </script>

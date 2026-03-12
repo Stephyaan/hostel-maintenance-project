@@ -2,9 +2,10 @@
 <html>
 
 <head>
-    <title>My Complaints</title>
-    <link rel="stylesheet" href="../static/css/style.css">
-    <script src="../static/js/main.js"></script>
+    <meta charset="UTF-8">
+    <title>My Complaints | HostelHub</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <script src="/static/js/main.js"></script>
 
     <style>
         .page-header {
@@ -84,7 +85,7 @@
 
 <body>
 
-    <div class="app">
+    <div class="app student-app">
 
         <!-- ===== SIDEBAR ===== -->
         <div class="sidebar">
@@ -92,11 +93,11 @@
             <p class="portal-label">Student Portal</p>
 
             <ul>
-                <li onclick="location.href='dashboard.html'">Dashboard</li>
+                <li onclick="location.href='/student/dashboard.html'">Dashboard</li>
                 <li class="active">My Complaints</li>
-                <li onclick="location.href='request_resources.html'">Request Resources</li>
-                <li onclick="location.href='notices.html'">Notices</li>
-                <li onclick="location.href='emergency.html'">Emergency</li>
+                <li onclick="location.href='/student/request_resources.html'">Request Resources</li>
+                <li onclick="location.href='/student/notices.html'">Notices</li>
+                <li onclick="location.href='/student/emergency.html'">Emergency</li>
             </ul>
             <div class="sidebar-logout" onclick="logout()">
                 Logout
@@ -141,6 +142,12 @@
             <label>Description</label>
             <textarea id="cDesc" placeholder="Describe the issue clearly"></textarea>
 
+            <label>Category</label>
+            <select id="cCategory">
+                <option value="">Select Category</option>
+            </select>
+
+
             <label>Priority</label>
             <select id="cPriority">
                 <option>Low</option>
@@ -182,9 +189,21 @@
         </div>
     </div>
 
+    <!-- ===== DETAILS MODAL ===== -->
+    <div id="detailsModal" class="modal">
+        <div class="modal-box">
+            <h3 id="detailsTitle">Complaint Details</h3>
+            <div class="modal-body" id="detailsBody" style="margin: 20px 0; line-height: 1.6;"></div>
+            <div class="modal-footer" style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px;">
+                <button class="btn-outline" onclick="closeDetailsModal()">Close</button>
+            </div>
+        </div>
+    </div>
+
     <!-- ===== SCRIPT ===== -->
     <script>
-        document.addEventListener("DOMContentLoaded", () => {
+        document.addEventListener("DOMContentLoaded", async () => {
+            await checkSettings();
             renderComplaints('active');
             syncSidebarSettings();
         });
@@ -224,6 +243,28 @@
                 document.querySelector('#addModal .modal-actions').before(container);
             }
 
+            // Rule-Based Priority logic
+            const priorityLabel = document.querySelector('label[for="cPriority"]') || [...document.querySelectorAll('label')].find(el => el.textContent === 'Priority');
+            const prioritySelect = document.getElementById('cPriority');
+            if (ruleBasedPriorityEnabled) {
+                if (priorityLabel) priorityLabel.style.display = 'none';
+                prioritySelect.style.display = 'none';
+            } else {
+                if (priorityLabel) priorityLabel.style.display = 'block';
+                prioritySelect.style.display = 'block';
+            }
+
+            // Fetch Categories
+            const catSelect = document.getElementById('cCategory');
+            catSelect.innerHTML = '<option value="">Loading categories...</option>';
+            const categories = await apiCall('categories/', 'GET');
+
+            if (categories && categories.length > 0) {
+                catSelect.innerHTML = categories.map(cat => `<option value="${cat.name}">${cat.name}</option>`).join('');
+            } else {
+                catSelect.innerHTML = '<option value="">No categories found</option>';
+            }
+
             document.getElementById("addModal").style.display = "flex";
         }
 
@@ -232,12 +273,20 @@
         }
 
         let anonymousReportingEnabled = false;
+        let satisfactionFeedbackRequired = false;
+        let ruleBasedPriorityEnabled = false;
 
         async function checkSettings() {
             const settings = await apiCall('settings/', 'GET');
             if (settings) {
-                const setting = settings.find(s => s.key === 'anonymous_reporting');
-                anonymousReportingEnabled = setting ? setting.value : false;
+                const anonSetting = settings.find(s => s.key === 'anonymous_reporting');
+                anonymousReportingEnabled = anonSetting ? anonSetting.value : false;
+
+                const feedbackSetting = settings.find(s => s.key === 'satisfaction_feedback');
+                satisfactionFeedbackRequired = feedbackSetting ? feedbackSetting.value : false;
+
+                const ruleSetting = settings.find(s => s.key === 'rule_based_priority');
+                ruleBasedPriorityEnabled = ruleSetting ? ruleSetting.value : false;
             }
         }
 
@@ -246,10 +295,11 @@
             const room = cRoom.value.trim();
             const desc = cDesc.value.trim();
             const priority = cPriority.value;
+            const category = document.getElementById('cCategory').value;
             const isAnonymous = document.getElementById('cAnonymous')?.checked || false;
 
-            if (!title || !room || !desc) {
-                alert("Please fill all fields");
+            if (!title || !room || !desc || !category) {
+                alert("Please fill all fields including Category");
                 return;
             }
 
@@ -257,6 +307,7 @@
                 title: title,
                 room: room,
                 description: desc,
+                category: category,
                 priority: priority,
                 is_anonymous: isAnonymous
             };
@@ -287,8 +338,11 @@
             container.innerHTML = "";
 
             const filtered = complaints.filter(c => {
-                if (tab === 'active') return c.status !== 'Resolved';
-                return c.status === 'Resolved';
+                if (tab === 'active') {
+                    return c.status !== 'Resolved';
+                } else {
+                    return c.status === 'Resolved';
+                }
             });
 
             if (filtered.length === 0) {
@@ -303,7 +357,7 @@
                 else if (c.status === 'In Progress') color = '#3b82f6';
                 else if (c.status === 'Awaiting Approval') color = '#f0ad4e';
 
-                let actionBtns = `<button style="border:1px solid #e2e8f0; background:white; padding:6px 12px; border-radius:6px; font-size:12px; cursor:pointer;">View Details</button>`;
+                let actionBtns = `<button style="border:1px solid #e2e8f0; background:white; padding:6px 12px; border-radius:6px; font-size:12px; cursor:pointer;" onclick="viewComplaintDetails(${c.id})">View Details</button>`;
 
                 if (tab === 'active' && c.status === 'Pending') {
                     actionBtns += `<button style="background:#fee2e2; color:#ef4444; border:none; padding:6px 12px; border-radius:6px; font-size:12px; cursor:pointer;" onclick="deleteComplaint(${c.id})">Delete</button>`;
@@ -314,6 +368,7 @@
                     if (c.feedback_rating) {
                         actionBtns += `<span style="font-size:12px; color:#f59e0b; font-weight:bold; margin-left:5px;">Rated: ${'⭐'.repeat(c.feedback_rating)}</span>`;
                     } else {
+                        // Show "Rate Service" button for any resolved complaint without feedback
                         actionBtns += `<button style="background:#fef3c7; color:#d97706; border:none; padding:6px 12px; border-radius:6px; font-size:12px; cursor:pointer; font-weight:600;" onclick="openFeedbackModal(${c.id})">Rate Service</button>`;
                     }
                 }
@@ -324,13 +379,24 @@
                     <div class="complaint-card" style="border-left-color: ${color}">
                         <div class="complaint-header">
                             <div>
-                                <small style="color:#64748b;">#${c.id} · ${dateStr}</small>
+                                <small style="color:#64748b;">#${c.id} · ${dateStr} · <strong>${c.category || 'General'}</strong> (ETR: ${c.etr_hours || 24}h)</small>
                                 <h3 style="margin: 4px 0; font-size:16px;">${c.title}</h3>
                                 <p style="font-size:13px; color:#475569; margin:0;">${c.room}</p>
                             </div>
                             <span class="status-pill ${c.status.toLowerCase().replace(' ', '')}">${c.status}</span>
                         </div>
                         <p style="font-size:13px; color:#64748b; line-height:1.5; margin-top:10px;">${c.description}</p>
+                        
+                        ${c.resolution_proof ? `
+                            <div style="margin-top:10px; padding:10px; background:#f0fdf4; border-radius:8px; border:1px solid #bbf7d0;">
+                                <b style="font-size:11px; color:#166534; text-transform:uppercase;">📸 Resolution Evidence:</b>
+                                ${c.resolution_proof.startsWith('data:image/')
+                            ? `<img src="${c.resolution_proof}" style="width:100%; max-height:150px; object-fit:cover; border-radius:8px; margin-top:8px; cursor:pointer;" onclick="window.open(this.src)">`
+                            : `<p style="font-size:12px; color:#1e293b; margin:6px 0 0 0; line-height:1.4;">${c.resolution_proof}</p>`
+                        }
+                            </div>
+                        ` : ''}
+
                         <div style="margin-top:15px; display:flex; gap:10px; align-items:center;">
                              ${actionBtns}
                         </div>
@@ -375,6 +441,43 @@
                 closeFeedbackModal();
                 renderComplaints(currentTab);
             }
+        }
+
+        /* DETAILS MODAL LOGIC */
+        let studentComplaints = [];
+
+        async function viewComplaintDetails(id) {
+            const complaints = await apiCall("complaints/", "GET"); // Ensure we have latest
+            const c = complaints.find(x => x.id === id);
+            if (!c) return;
+
+            const dateStr = new Date(c.created_at).toLocaleString();
+            document.getElementById('detailsBody').innerHTML = `
+                <p><b>Issue:</b> ${c.title}</p>
+                <p><b>Category:</b> ${c.category || 'General'} (ETR: ${c.etr_hours || 24}h)</p>
+                <p><b>Room:</b> ${c.room}</p>
+                <p><b>Reported:</b> ${dateStr}</p>
+                <p><b>Status:</b> ${c.status}</p>
+                <p><b>Priority:</b> ${c.priority}</p>
+                <p><b>Description:</b> ${c.description}</p>
+                ${c.assigned_worker_name ? `<p><b>Assigned Worker:</b> ${c.assigned_worker_name}</p>` : ''}
+                ${c.resolution_proof ? `
+                    <div style="margin-top:15px; padding:15px; background:#f0fdf4; border-radius:10px; border:1px solid #bbf7d0;">
+                        <b style="color:#166534; font-size:12px; text-transform:uppercase;">📸 Resolution Evidence:</b>
+                        ${c.resolution_proof.startsWith('data:image/')
+                        ? `<img src="${c.resolution_proof}" style="width:100%; max-height:250px; object-fit:cover; border-radius:8px; margin-top:8px; display:block; cursor:pointer;" onclick="window.open(this.src)">`
+                        : `<p style="margin:8px 0 0 0; font-size:14px; color:#1e293b; line-height:1.4;">${c.resolution_proof}</p>`
+                    }
+                    </div>
+                ` : ''}
+                ${c.feedback_rating ? `<p><b>Your Rating:</b> ${'⭐'.repeat(c.feedback_rating)}</p>` : ''}
+                ${c.feedback_comment ? `<p><b>Your Feedback:</b> ${c.feedback_comment}</p>` : ''}
+            `;
+            document.getElementById('detailsModal').style.display = 'flex';
+        }
+
+        function closeDetailsModal() {
+            document.getElementById('detailsModal').style.display = 'none';
         }
     </script>
 

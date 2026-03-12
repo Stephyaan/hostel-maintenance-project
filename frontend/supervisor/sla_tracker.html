@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>SLA Breach Tracker | HostelHub</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <script src="/static/js/main.js"></script>
+    <style>
+        :root {
+            --primary: #2b7cff;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --slate-50: #f8fafc;
+            --slate-100: #f1f5f9;
+            --slate-200: #e2e8f0;
+            --slate-600: #475569;
+            --slate-700: #334155;
+        }
+
+        .container {
+            display: flex;
+            gap: 24px;
+            height: calc(100vh - 160px);
+            margin-top: 20px;
+        }
+
+        .list-panel {
+            flex: 1;
+            background: #fff;
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            border: 1px solid var(--slate-100);
+        }
+
+        .detail-panel {
+            width: 500px;
+            background: #fff;
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 4px 25px rgba(0, 0, 0, 0.06);
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+            border: 1px solid var(--slate-100);
+        }
+
+        .breach-card {
+            padding: 18px;
+            border-radius: 12px;
+            border: 1px solid #fee2e2;
+            background: #fff;
+            margin-bottom: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+        }
+
+        .breach-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.1);
+            border-color: var(--danger);
+        }
+
+        .breach-card.active {
+            background: #fef2f2;
+            border-color: var(--danger);
+            box-shadow: 0 4px 15px rgba(239, 68, 68, 0.15);
+        }
+
+        .delay-tag {
+            background: var(--danger);
+            color: white;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 800;
+        }
+
+        .priority-badge {
+            font-size: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+            padding: 2px 8px;
+            border-radius: 4px;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 80px 20px;
+            color: var(--slate-600);
+        }
+
+        .back-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--slate-100);
+            border: none;
+            padding: 8px 16px;
+            border-radius: 8px;
+            color: var(--slate-700);
+            font-weight: 700;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .back-btn:hover { background: var(--slate-200); }
+
+        .timeline-item {
+            position: relative;
+            padding-left: 20px;
+            border-left: 2px solid var(--slate-100);
+            padding-bottom: 20px;
+        }
+
+        .timeline-dot {
+            position: absolute;
+            left: -6px;
+            top: 5px;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: var(--slate-200);
+        }
+
+        .btn-action {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 10px;
+            font-weight: 700;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="app supervisor-app">
+        <div class="sidebar">
+            <h2>HostelHub</h2>
+            <p style="color:#777;font-size:14px;">Supervisor Portal</p>
+            <ul>
+                <li onclick="location.href='/supervisor/dashboard.html'">Dashboard</li>
+                <li onclick="location.href='/supervisor/complaints.html'">Lifecycle Manager</li>
+                <li onclick="location.href='/supervisor/workers.html'">Manage Workers</li>
+                <li onclick="location.href='/supervisor/notices.html'">Notices</li>
+                <li class="active" onclick="location.href='/supervisor/reports.html'">Reports</li>
+            </ul>
+        </div>
+
+        <div class="content">
+            <div class="topbar">
+                <div style="display:flex; align-items:center; gap:20px;">
+                    <button onclick="location.href='/supervisor/reports.html'" class="back-btn">← Back</button>
+                    <div>
+                        <h2 style="margin:0;">🚨 SLA Breach Tracker</h2>
+                        <p style="margin:4px 0 0; color:var(--slate-600);">Monitoring tasks that have exceeded resolution timeframes</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="container">
+                <div class="list-panel">
+                    <div style="margin-bottom:20px; display:flex; justify-content:space-between; align-items:center;">
+                        <h3 style="margin:0;">Breached Tasks</h3>
+                        <span id="breachCount" style="background:#fee2e2; color:var(--danger); padding:4px 12px; border-radius:20px; font-weight:800; font-size:12px;">0 OVERDUE</span>
+                    </div>
+                    <div id="breachList" style="flex:1; overflow-y:auto; padding-right:10px;">
+                        <!-- JS Render -->
+                    </div>
+                </div>
+
+                <div class="detail-panel" id="detailPanel">
+                    <div class="empty-state">
+                        <div style="font-size: 48px; margin-bottom: 20px; opacity: 0.3;">⏳</div>
+                        <h3>Select a Task</h3>
+                        <p>View why a task has breached its SLA and take immediate action.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let breachedTasks = [];
+        let selectedId = null;
+
+        async function loadData() {
+            const complaints = await apiCall('complaints/', 'GET');
+            if (complaints) {
+                const now = new Date().getTime();
+                breachedTasks = complaints.filter(c => {
+                    if (c.status === 'Resolved') return false;
+                    const hoursOld = (now - new Date(c.created_at).getTime()) / (1000 * 60 * 60);
+                    if (c.priority === 'High' && hoursOld > 24) return true;
+                    if (c.priority === 'Medium' && hoursOld > 48) return true;
+                    if (c.priority === 'Low' && hoursOld > 72) return true;
+                    return false;
+                });
+                // Sort by oldest
+                breachedTasks.sort((a,b) => new Date(a.created_at) - new Date(b.created_at));
+                
+                document.getElementById('breachCount').innerText = breachedTasks.length + ' OVERDUE';
+                renderList();
+            }
+        }
+
+        function renderList() {
+            const container = document.getElementById('breachList');
+            if (breachedTasks.length === 0) {
+                container.innerHTML = '<div class="empty-state">Great job! No tasks are currently breaching SLA.</div>';
+                return;
+            }
+
+            const now = new Date().getTime();
+            container.innerHTML = breachedTasks.map(c => {
+                const hoursOld = Math.floor((now - new Date(c.created_at).getTime()) / (1000 * 60 * 60));
+                const days = Math.floor(hoursOld / 24);
+                const delayText = days > 0 ? `${days}d ${hoursOld % 24}h overdue` : `${hoursOld}h overdue`;
+
+                return `
+                    <div class="breach-card ${selectedId === c.id ? 'active' : ''}" onclick="selectTask(${c.id})">
+                        <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:10px;">
+                            <span class="delay-tag">${delayText}</span>
+                            <span class="priority-badge" style="background:${getPriColor(c.priority)}15; color:${getPriColor(c.priority)}">${c.priority}</span>
+                        </div>
+                        <h4 style="margin:0 0 5px; color:var(--slate-700);">${c.title}</h4>
+                        <div style="font-size:12px; color:var(--slate-600); display:flex; gap:15px;">
+                            <span>📍 ${c.room}</span>
+                            <span>👤 ${c.assigned_worker_name || 'Unassigned'}</span>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function selectTask(id) {
+            selectedId = id;
+            renderList();
+            const c = breachedTasks.find(x => x.id === id);
+            const panel = document.getElementById('detailPanel');
+            
+            const now = new Date().getTime();
+            const hoursOld = Math.floor((now - new Date(c.created_at).getTime()) / (1000 * 60 * 60));
+            const limit = c.priority === 'High' ? 24 : (c.priority === 'Medium' ? 48 : 72);
+            const breachBy = hoursOld - limit;
+
+            panel.innerHTML = `
+                <div style="padding-bottom:20px; border-bottom:1px solid var(--slate-100); margin-bottom:20px;">
+                    <h3 style="margin:0 0 5px;">Breach Analysis</h3>
+                    <div style="color:var(--danger); font-weight:700; font-size:14px;">⚠️ Exceeded limit by ${breachBy} hours</div>
+                </div>
+
+                <div style="margin-bottom:25px;">
+                    <label style="font-size:11px; text-transform:uppercase; color:var(--slate-600); font-weight:800;">Problem Statement</label>
+                    <div style="font-size:18px; font-weight:800; color:var(--slate-700); margin-top:5px;">${c.title}</div>
+                    <p style="color:var(--slate-600); font-size:14px; margin-top:8px; line-height:1.6;">${c.description}</p>
+                </div>
+
+                <div style="background:var(--slate-50); padding:20px; border-radius:12px; margin-bottom:25px;">
+                    <label style="color:var(--slate-600); font-weight:800; font-size:11px;">SLA Details</label>
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:15px; margin-top:10px;">
+                        <div>
+                            <div style="font-size:11px; color:var(--slate-600);">Priority</div>
+                            <div style="font-weight:700; color:${getPriColor(c.priority)}">${c.priority}</div>
+                        </div>
+                        <div>
+                            <div style="font-size:11px; color:var(--slate-600);">Time Limit</div>
+                            <div style="font-weight:700;">${limit} Hours</div>
+                        </div>
+                        <div>
+                            <div style="font-size:11px; color:var(--slate-600);">Current Wait</div>
+                            <div style="font-weight:700; color:var(--danger);">${hoursOld} Hours</div>
+                        </div>
+                        <div>
+                            <div style="font-size:11px; color:var(--slate-600);">Assigned To</div>
+                            <div style="font-weight:700;">${c.assigned_worker_name || 'N/A'}</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="margin-bottom:25px;">
+                    <label style="color:var(--slate-600); font-weight:800; font-size:11px;">Timeline</label>
+                    <div style="margin-top:15px;">
+                        <div class="timeline-item">
+                            <div class="timeline-dot" style="background:var(--primary);"></div>
+                            <div style="font-weight:700; font-size:13px;">Created</div>
+                            <div style="font-size:11px; color:var(--slate-600);">${new Date(c.created_at).toLocaleString()}</div>
+                        </div>
+                        <div class="timeline-item">
+                            <div class="timeline-dot" style="background:var(--danger);"></div>
+                            <div style="font-weight:700; font-size:13px; color:var(--danger);">SLA Breach Point</div>
+                            <div style="font-size:11px; color:var(--slate-600);">Passed ${limit}h mark</div>
+                        </div>
+                        <div class="timeline-item" style="border:none;">
+                            <div class="timeline-dot"></div>
+                            <div style="font-weight:700; font-size:13px; color:var(--slate-600);">Current Status</div>
+                            <div style="font-size:11px; color:var(--slate-600);">${c.status}</div>
+                        </div>
+                    </div>
+                </div>
+
+                <button class="btn-action" onclick="location.href='/supervisor/complaints.html'">
+                    ⚡ Reassign or Expedite Task
+                </button>
+            `;
+        }
+
+        function getPriColor(p) {
+            if (p === 'High') return 'var(--danger)';
+            if (p === 'Medium') return 'var(--warning)';
+            return 'var(--success)';
+        }
+
+        window.onload = async () => {
+            await loadData();
+            syncSidebarSettings();
+        };
+    </script>
+</body>
+</html>

@@ -2,9 +2,10 @@
 <html>
 
 <head>
-    <title>Student Dashboard</title>
-    <link rel="stylesheet" href="../static/css/style.css">
-    <script src="../static/js/main.js"></script>
+    <meta charset="UTF-8">
+    <title>Dashboard | HostelHub</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <script src="/static/js/main.js"></script>
 
     <style>
         .topbar {
@@ -130,7 +131,7 @@
 
 <body>
 
-    <div class="app">
+    <div class="app student-app">
 
         <!-- Sidebar -->
         <div class="sidebar">
@@ -138,11 +139,11 @@
             <p class="portal-label">Student Portal</p>
 
             <ul>
-                <li onclick="location.href='dashboard.html'">Dashboard</li>
-                <li onclick="location.href='complaints.html'">My Complaints</li>
-                <li onclick="location.href='request_resources.html'">Request Resources</li>
-                <li onclick="location.href='notices.html'">Notices</li>
-                <li onclick="location.href='emergency.html'">Emergency</li>
+                <li class="active" onclick="location.href='/student/dashboard.html'">Dashboard</li>
+                <li onclick="location.href='/student/complaints.html'">My Complaints</li>
+                <li onclick="location.href='/student/request_resources.html'">Request Resources</li>
+                <li onclick="location.href='/student/notices.html'">Notices</li>
+                <li onclick="location.href='/student/emergency.html'">Emergency</li>
             </ul>
             <div class="sidebar-logout" onclick="logout()">
                 Logout
@@ -157,8 +158,8 @@
             <!-- Top Header -->
             <div class="topbar">
                 <div>
-                    <h2>Welcome back, Student 👋</h2>
-                    <p style="color:#666;">Block A · Room 204</p>
+                    <h2 id="studentWelcome">Welcome back 👋</h2>
+                    <p id="studentInfo" style="color:#666;"></p>
                 </div>
 
             </div>
@@ -207,18 +208,14 @@
                     </div>
 
                     <!-- Resource Requests -->
-                    <div class="metric-card">
+                    <div class="metric-card" id="resourceCard">
                         <div class="card-header">
                             <h3>📦 Material Requests</h3>
                             <a href="request_resources.html"
                                 style="font-size:12px; color:#2b7cff; text-decoration:none;">Track</a>
                         </div>
-                        <div class="complaint-item">
-                            <div class="complaint-info">
-                                <b>New Request</b>
-                                <span>Study Table Lamp</span>
-                            </div>
-                            <span class="stat-pill pending">Pending Approval</span>
+                        <div id="resourceList">
+                            <p style="text-align:center; color:#94a3b8; font-style:italic; padding:10px;">Loading requests...</p>
                         </div>
                     </div>
 
@@ -265,46 +262,55 @@
         window.onload = async function () {
             // Show logged-in user info
             const user = JSON.parse(localStorage.getItem('user') || '{}');
-            if (user.username) {
-                document.querySelector('.topbar h2').innerText = `Welcome back, ${user.first_name || user.username} 👋`;
+            if (user.first_name || user.username) {
+                document.getElementById('studentWelcome').innerText = `Welcome back, ${user.first_name || user.username} 👋`;
                 if (user.block && user.room_number) {
-                    document.querySelector('.topbar p').innerText = `Block ${user.block} · Room ${user.room_number}`;
+                    document.getElementById('studentInfo').innerText = `Block ${user.block} · Room ${user.room_number}`;
+                } else {
+                    document.getElementById('studentInfo').innerText = `Role: ${user.role || 'Student'}`;
                 }
             }
 
             // Fetch data and settings
-            const [complaints, notices, settings] = await Promise.all([
+            const [complaints, notices, resources, settings] = await Promise.all([
                 apiCall('complaints/', 'GET'),
                 apiCall('notices/', 'GET'),
+                apiCall('resource-requests/', 'GET'),
                 apiCall('settings/', 'GET')
             ]);
 
-            // Handle Settings
+            // Handle Settings for Resource module
             if (settings) {
                 const resourceModule = settings.find(s => s.key === 'resource_request_module');
                 if (resourceModule && resourceModule.value === false) {
-                    // Hide in sidebar
                     const resSidebar = document.querySelector('li[onclick*="request_resources.html"]');
                     if (resSidebar) resSidebar.style.display = 'none';
-                    // Hide in dashboard grid
-                    const resCard = document.querySelector('.metric-card:has(h3:contains("Material Requests"))') ||
-                        Array.from(document.querySelectorAll('.metric-card')).find(el => el.innerText.includes('Material Requests'));
+                    const resCard = document.getElementById('resourceCard');
                     if (resCard) resCard.style.display = 'none';
                 }
             }
 
             // 1. Complaints
             if (complaints) {
-                document.getElementById('totalCount').innerText = complaints.length;
-                document.getElementById('pendingCount').innerText = complaints.filter(c => c.status === 'Pending').length;
-                document.getElementById('progressCount').innerText = complaints.filter(c => c.status === 'In Progress').length;
-                document.getElementById('resolvedCount').innerText = complaints.filter(c => c.status === 'Resolved').length;
+                // Only show student's own complaints (filter if students see all, but usually API should filter)
+                // Assuming API filters by user. If not, filtered here:
+                const myComplaints = complaints; // Assuming backend handles filtering for student
+                
+                document.getElementById('totalCount').innerText = myComplaints.length;
+                document.getElementById('pendingCount').innerText = myComplaints.filter(c => c.status === 'Pending' || c.status === 'Awaiting Approval').length;
+                document.getElementById('progressCount').innerText = myComplaints.filter(c => c.status === 'In Progress').length;
+                document.getElementById('resolvedCount').innerText = myComplaints.filter(c => c.status === 'Resolved').length;
 
                 const recentContainer = document.getElementById('recentList');
-                if (complaints.length > 0) {
-                    recentContainer.innerHTML = complaints.slice(0, 3).map(c => {
+                if (myComplaints.length > 0) {
+                    // Sort by newest first
+                    const latest = [...myComplaints].sort((a,b) => new Date(b.created_at) - new Date(a.created_at)).slice(0, 3);
+                    recentContainer.innerHTML = latest.map(c => {
                         const dateStr = new Date(c.created_at).toLocaleDateString();
-                        const statusClass = c.status.toLowerCase().replace(' ', '');
+                        const s = c.status;
+                        const statusClass = s === 'Pending' ? 'pending' 
+                            : s === 'In Progress' ? 'progress'
+                            : s === 'Resolved' ? 'resolved' : 'pending';
                         return `
                         <div class="complaint-item">
                             <div class="complaint-info">
@@ -315,13 +321,35 @@
                         </div>
                     `}).join('');
                 } else {
-                    recentContainer.innerHTML = `<div style="text-align:center; color:#94a3b8; font-style:italic;">No recent activity</div>`;
+                    recentContainer.innerHTML = `<div style="text-align:center; color:#94a3b8; font-style:italic; padding:10px;">No recent complaints</div>`;
+                }
+            }
+
+            // 2. Resource Requests
+            if (resources) {
+                const resList = document.getElementById('resourceList');
+                if (resources.length > 0) {
+                    const latestRes = [...resources].sort((a,b) => new Date(b.created_at) - new Date(a.created_at)).slice(0, 2);
+                    resList.innerHTML = latestRes.map(r => {
+                        const s = r.status.toLowerCase();
+                        return `
+                        <div class="complaint-item">
+                            <div class="complaint-info">
+                                <b>${r.item_name}</b>
+                                <span>Qty: ${r.quantity}</span>
+                            </div>
+                            <span class="stat-pill ${s === 'approved' ? 'resolved' : s === 'rejected' ? 'pending' : 'progress'}">${r.status}</span>
+                        </div>
+                    `}).join('');
+                } else {
+                    resList.innerHTML = `<div style="text-align:center; color:#94a3b8; font-style:italic; padding:10px;">No active requests</div>`;
                 }
             }
 
             // 3. Notices
             if (notices) {
-                document.getElementById('noticeBadge').innerText = `${notices.length} Active`;
+                const activeNotices = notices.filter(n => n.is_active);
+                document.getElementById('noticeBadge').innerText = `${activeNotices.length} Active`;
             }
         }
     </script>

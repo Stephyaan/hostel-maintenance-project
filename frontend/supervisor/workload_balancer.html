@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Workload Balancer | HostelHub</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <script src="/static/js/main.js"></script>
+    <style>
+        :root {
+            --primary: #2b7cff;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --slate-50: #f8fafc;
+            --slate-100: #f1f5f9;
+            --slate-200: #e2e8f0;
+            --slate-600: #475569;
+            --slate-700: #334155;
+        }
+
+        .container {
+            display: flex;
+            gap: 24px;
+            height: calc(100vh - 160px);
+            margin-top: 20px;
+        }
+
+        .list-panel {
+            flex: 1;
+            background: #fff;
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            border: 1px solid var(--slate-100);
+        }
+
+        .detail-panel {
+            width: 500px;
+            background: #fff;
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 4px 25px rgba(0, 0, 0, 0.06);
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+            border: 1px solid var(--slate-100);
+        }
+
+        .worker-card {
+            padding: 20px;
+            border-radius: 12px;
+            border: 1px solid var(--slate-100);
+            background: #fff;
+            margin-bottom: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+        }
+
+        .worker-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            border-color: var(--primary);
+        }
+
+        .worker-card.active {
+            border-color: var(--primary);
+            background: #f0f7ff;
+            box-shadow: 0 4px 15px rgba(43, 124, 255, 0.1);
+        }
+
+        .progress-container {
+            height: 6px;
+            background: var(--slate-100);
+            border-radius: 3px;
+            overflow: hidden;
+            margin-top: 10px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            border-radius: 3px;
+            transition: width 1s cubic-bezier(0.1, 0, 0.2, 1);
+        }
+
+        .task-item {
+            padding: 15px;
+            border-radius: 10px;
+            border: 1px solid var(--slate-100);
+            margin-bottom: 10px;
+            background: #fff;
+        }
+
+        .priority-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 5px;
+        }
+
+        .status-badge {
+            font-size: 10px;
+            font-weight: 700;
+            padding: 2px 8px;
+            border-radius: 4px;
+            text-transform: uppercase;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 80px 20px;
+            color: var(--slate-600);
+        }
+
+        .back-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--slate-100);
+            border: none;
+            padding: 8px 16px;
+            border-radius: 8px;
+            color: var(--slate-700);
+            font-weight: 700;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .back-btn:hover { background: var(--slate-200); }
+
+        .stat-circle {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 14px;
+            flex-shrink: 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="app supervisor-app">
+        <div class="sidebar">
+            <h2>HostelHub</h2>
+            <p style="color:#777;font-size:14px;">Supervisor Portal</p>
+            <ul>
+                <li onclick="location.href='/supervisor/dashboard.html'">Dashboard</li>
+                <li onclick="location.href='/supervisor/complaints.html'">Lifecycle Manager</li>
+                <li onclick="location.href='/supervisor/workers.html'">Manage Workers</li>
+                <li onclick="location.href='/supervisor/notices.html'">Notices</li>
+                <li class="active" onclick="location.href='/supervisor/reports.html'">Reports</li>
+            </ul>
+        </div>
+
+        <div class="content">
+            <div class="topbar">
+                <div style="display:flex; align-items:center; gap:20px;">
+                    <button onclick="location.href='/supervisor/reports.html'" class="back-btn">← Back</button>
+                    <div>
+                        <h2 style="margin:0;">⚖️ Workload Balancer</h2>
+                        <p style="margin:4px 0 0; color:var(--slate-600);">Real-time tracking of staff capacity and active task assignments</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="container">
+                <div class="list-panel">
+                    <div style="margin-bottom:20px; display:flex; justify-content:space-between; align-items:center;">
+                        <h3 style="margin:0;">Maintenance Staff</h3>
+                        <span id="staffCount" style="color:var(--slate-600); font-weight:700; font-size:12px;">0 WORKERS</span>
+                    </div>
+                    <div id="workerList" style="flex:1; overflow-y:auto; padding-right:10px;">
+                        <!-- JS Render -->
+                    </div>
+                </div>
+
+                <div class="detail-panel" id="detailPanel">
+                    <div class="empty-state">
+                        <div style="font-size: 48px; margin-bottom: 20px; opacity: 0.3;">⚖️</div>
+                        <h3>Select a Worker</h3>
+                        <p>View their full task list and active workload for redistribution.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let allWorkers = [];
+        let allComplaints = [];
+        let selectedId = null;
+
+        async function loadData() {
+            const [workersData, complaintsData] = await Promise.all([
+                apiCall('workers/', 'GET'),
+                apiCall('complaints/', 'GET')
+            ]);
+            
+            if (workersData && complaintsData) {
+                allWorkers = workersData;
+                allComplaints = complaintsData;
+                document.getElementById('staffCount').innerText = allWorkers.length + ' WORKERS';
+                renderList();
+            }
+        }
+
+        function renderList() {
+            const container = document.getElementById('workerList');
+            container.innerHTML = allWorkers.map(w => {
+                const activeTasks = allComplaints.filter(c => c.assigned_worker === w.id && c.status !== 'Resolved');
+                const count = activeTasks.length;
+                const pct = Math.min(100, (count / 5) * 100);
+                const color = count > 5 ? 'var(--danger)' : (count > 3 ? 'var(--warning)' : 'var(--primary)');
+
+                return `
+                    <div class="worker-card ${selectedId === w.id ? 'active' : ''}" onclick="selectWorker(${w.id})">
+                        <div style="display:flex; gap:15px; align-items:center;">
+                            <div class="stat-circle" style="background:${color}15; color:${color}">${count}</div>
+                            <div style="flex:1;">
+                                <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+                                    <h4 style="margin:0; font-size:15px; color:var(--slate-700);">${w.name}</h4>
+                                    <span style="font-size:11px; font-weight:700; border:1px solid var(--slate-100); padding:2px 8px; border-radius:4px;">${w.skill}</span>
+                                </div>
+                                <div class="progress-container">
+                                    <div class="progress-fill" style="width:${pct}%; background:${color};"></div>
+                                </div>
+                                <div style="display:flex; justify-content:space-between; margin-top:8px; font-size:11px; color:var(--slate-600); font-weight:600;">
+                                    <span>${count > 5 ? 'Overloaded' : (count > 3 ? 'Heavy' : 'Balanced')}</span>
+                                    <span>${w.is_available ? '🟢 Online' : '⚪ Offline'}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function selectWorker(id) {
+            selectedId = id;
+            renderList();
+            const worker = allWorkers.find(x => x.id === id);
+            const activeTasks = allComplaints.filter(c => c.assigned_worker === id && c.status !== 'Resolved');
+            const panel = document.getElementById('detailPanel');
+            
+            if (!worker) return;
+
+            panel.innerHTML = `
+                <div style="padding-bottom:20px; border-bottom:1px solid var(--slate-100); margin-bottom:25px;">
+                    <div style="font-size:11px; text-transform:uppercase; color:var(--slate-600); font-weight:800;">Staff Details</div>
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-top:10px;">
+                        <h2 style="margin:0;">${worker.name}</h2>
+                        <span style="color:var(--slate-600); font-weight:700;">${worker.skill}</span>
+                    </div>
+                </div>
+
+                <div style="margin-bottom:25px; display:grid; grid-template-columns:1fr 1fr; gap:15px;">
+                    <div style="background:var(--slate-50); padding:15px; border-radius:12px;">
+                        <div style="font-size:10px; color:var(--slate-600); font-weight:800; text-transform:uppercase;">Active Load</div>
+                        <div style="font-size:24px; font-weight:800; color:var(--primary);">${activeTasks.length}</div>
+                        <div style="font-size:11px; color:var(--slate-600); margin-top:4px;">Pending tasks</div>
+                    </div>
+                    <div style="background:var(--slate-50); padding:15px; border-radius:12px;">
+                        <div style="font-size:10px; color:var(--slate-600); font-weight:800; text-transform:uppercase;">Performance</div>
+                        <div style="font-size:24px; font-weight:800; color:var(--success);">${worker.resolved_tasks || 0}</div>
+                        <div style="font-size:11px; color:var(--slate-600); margin-top:4px;">Tasks resolved</div>
+                    </div>
+                </div>
+
+                <div style="margin-bottom:20px;">
+                    <h4 style="margin:0 0 15px; font-size:14px; text-transform:uppercase; color:var(--slate-600); letter-spacing:1px;">Assigned Tasks</h4>
+                    <div id="workerTaskList">
+                        ${activeTasks.length > 0 ? activeTasks.map(t => `
+                            <div class="task-item">
+                                <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:8px;">
+                                    <div style="font-weight:700; color:var(--slate-700); font-size:14px;">${t.title}</div>
+                                    <span class="status-badge" style="background:${getStatusBg(t.status)}; color:${getStatusColor(t.status)}">${t.status}</span>
+                                </div>
+                                <div style="font-size:12px; color:var(--slate-600); display:flex; gap:12px;">
+                                    <span>📍 ${t.room}</span>
+                                    <span><span class="priority-dot" style="background:${getPriColor(t.priority)}"></span>${t.priority}</span>
+                                </div>
+                                <div style="margin-top:10px; padding-top:10px; border-top:1px solid var(--slate-100); display:flex; justify-content:space-between; align-items:center;">
+                                    <span style="font-size:10px; color:var(--slate-600);">⏳ Reported ${new Date(t.created_at).toLocaleDateString()}</span>
+                                    <button class="btn-sm" style="font-size:10px; padding:4px 8px;" onclick="location.href='/supervisor/complaints.html'">Manage</button>
+                                </div>
+                            </div>
+                        `).join('') : '<div class="empty-state">No active tasks assigned to this worker.</div>'}
+                    </div>
+                </div>
+            `;
+        }
+
+        function getStatusBg(s) {
+            if (s === 'Pending') return '#fef3c7';
+            if (s === 'In Progress') return '#dbeafe';
+            if (s === 'Resolved') return '#dcfce7';
+            return '#f1f5f9';
+        }
+
+        function getStatusColor(s) {
+            if (s === 'Pending') return '#92400e';
+            if (s === 'In Progress') return '#1e40af';
+            if (s === 'Resolved') return '#166534';
+            return '#475569';
+        }
+
+        function getPriColor(p) {
+            if (p === 'High') return 'var(--danger)';
+            if (p === 'Medium') return 'var(--warning)';
+            return 'var(--success)';
+        }
+
+        window.onload = async () => {
+            await loadData();
+            syncSidebarSettings();
+        };
+    </script>
+</body>
+</html>

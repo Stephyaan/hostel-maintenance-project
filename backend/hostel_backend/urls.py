@@ -15,9 +15,22 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
-from django.urls import path, include
+from django.urls import path, include, re_path
+from django.views.generic import TemplateView
+from django.shortcuts import render
+
+def serve_frontend(request, path):
+    # If anyone asks for index.html inside a subfolder (usually due to relative logout redirects),
+    # serve the main login page from the root.
+    if path.endswith('index.html'):
+        return render(request, 'index.html')
+    
+    # Otherwise, try to serve the specifically requested HTML file.
+    return render(request, path)
 
 urlpatterns = [
+    re_path(r'^(?P<path>.*\.html)$', serve_frontend),
     path('admin/', admin.site.urls),
     path('api/', include('api.urls')),
+    path('', TemplateView.as_view(template_name='index.html')),
 ]

@@ -2,9 +2,10 @@
 <html>
 
 <head>
-    <title>Request Resources</title>
-    <link rel="stylesheet" href="../static/css/style.css">
-    <script src="../static/js/main.js"></script>
+    <meta charset="UTF-8">
+    <title>Request Resources | HostelHub</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <script src="/static/js/main.js"></script>
 
     <style>
         .resource-grid {
@@ -58,7 +59,7 @@
 
 <body>
 
-    <div class="app">
+    <div class="app student-app">
 
         <!-- Sidebar -->
         <div class="sidebar">
@@ -66,11 +67,11 @@
             <p class="portal-label">Student Portal</p>
 
             <ul>
-                <li onclick="location.href='dashboard.html'">Dashboard</li>
-                <li onclick="location.href='complaints.html'">My Complaints</li>
-                <li onclick="location.href='request_resources.html'">Request Resources</li>
-                <li onclick="location.href='notices.html'">Notices</li>
-                <li onclick="location.href='emergency.html'">Emergency</li>
+                <li onclick="location.href='/student/dashboard.html'">Dashboard</li>
+                <li onclick="location.href='/student/complaints.html'">My Complaints</li>
+                <li class="active">Request Resources</li>
+                <li onclick="location.href='/student/notices.html'">Notices</li>
+                <li onclick="location.href='/student/emergency.html'">Emergency</li>
             </ul>
             <div class="sidebar-logout" onclick="logout()">
                 Logout
@@ -107,11 +108,11 @@
 
             <h4 style="margin-top:20px;">Urgency Level</h4>
             <div class="urgency">
-                <div class="active">
+                <div class="active" onclick="selectUrgency(this, 'Normal')">
                     <b>Normal</b><br>
                     <small>7–10 days</small>
                 </div>
-                <div>
+                <div onclick="selectUrgency(this, 'Urgent')">
                     <b>Urgent</b><br>
                     <small>2–3 days</small>
                 </div>
@@ -120,21 +121,189 @@
             <label>Reason for Request</label>
             <textarea placeholder="Explain why you need this resource..."></textarea>
 
-            <button class="btn" style="width:100%;">Submit Request</button>
+            <button class="btn" style="width:100%; margin-top: 10px;" onclick="submitRequest()">Submit Request</button>
 
             <div class="card" style="margin-top:25px;">
                 <h3>My Recent Requests</h3>
-
-                <p><b>Mattress Replacement</b> – <span class="status resolved">Approved</span></p>
-                <p><b>Desk Lamp</b> – <span class="status pending">Pending</span></p>
+                <div id="recentRequestsList" style="margin-top: 15px;">
+                    <!-- Requests will be loaded here -->
+                </div>
             </div>
 
         </div>
     </div>
 
+    <!-- ===== DETAILS MODAL ===== -->
+    <div id="detailsModal" class="modal">
+        <div class="modal-box">
+            <h3 id="detailsTitle">Request Details</h3>
+            <div class="modal-body" id="detailsBody" style="margin: 20px 0; line-height: 1.6;"></div>
+            <div class="modal-footer" style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px;">
+                <button class="btn-outline" onclick="closeDetailsModal()">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== FEEDBACK MODAL ===== -->
+    <div id="feedbackModal" class="modal">
+        <div class="modal-box">
+            <h3>Rate Resource Delivery</h3>
+            <p style="color:#666; font-size:14px; margin-bottom:15px;">How satisfied are you with the resource provided?
+            </p>
+
+            <input type="hidden" id="fId">
+
+            <label>Rating</label>
+            <select id="fRating">
+                <option value="5">⭐⭐⭐⭐⭐ (Excellent)</option>
+                <option value="4">⭐⭐⭐⭐ (Good)</option>
+                <option value="3">⭐⭐⭐ (Average)</option>
+                <option value="2">⭐⭐ (Poor)</option>
+                <option value="1">⭐ (Very Poor)</option>
+            </select>
+
+            <label>Comments (Optional)</label>
+            <textarea id="fComment" placeholder="Any additional feedback?"></textarea>
+
+            <div class="modal-actions">
+                <button class="btn-outline" onclick="closeFeedbackModal()">Cancel</button>
+                <button class="btn-primary" onclick="submitFeedback()">Submit Feedback</button>
+            </div>
+        </div>
+    </div>
+
     <script>
-        window.onload = function () {
+        let currentUrgency = 'Normal';
+
+        function selectUrgency(el, level) {
+            document.querySelectorAll('.urgency div').forEach(d => d.classList.remove('active'));
+            el.classList.add('active');
+            currentUrgency = level;
+        }
+
+        async function submitRequest() {
+            const selectedResource = document.querySelector('.resource-card.selected b')?.innerText;
+            const quantity = document.querySelector('input[type="number"]').value;
+            const description = document.querySelector('textarea').value;
+
+            if (!selectedResource) {
+                alert("Please select a resource");
+                return;
+            }
+
+            const requestData = {
+                item_name: selectedResource,
+                quantity: parseInt(quantity),
+                urgency: currentUrgency,
+                description: description
+            };
+
+            const response = await apiCall('resource-requests/', 'POST', requestData);
+            if (response) {
+                alert("Request submitted successfully!");
+                // Clear form
+                document.querySelector('textarea').value = '';
+                document.querySelectorAll('.resource-card').forEach(c => {
+                    c.classList.remove('selected');
+                    c.style.background = '#ffffff';
+                    c.style.borderColor = '#dbe4ff';
+                });
+                loadRequests();
+            }
+        }
+
+        async function viewRequestDetails(id) {
+            const requests = await apiCall('resource-requests/', 'GET');
+            const r = requests.find(x => x.id === id);
+            if (!r) return;
+
+            const dateStr = new Date(r.created_at).toLocaleString();
+            document.getElementById('detailsBody').innerHTML = `
+                <p><b>Item:</b> ${r.item_name}</p>
+                <p><b>Quantity:</b> ${r.quantity || 1}</p>
+                <p><b>Urgency:</b> ${r.urgency || 'Normal'}</p>
+                <p><b>Reported:</b> ${dateStr}</p>
+                <p><b>Status:</b> ${r.status}</p>
+                <p><b>Reason/Description:</b> ${r.description || 'No description provided.'}</p>
+            `;
+            document.getElementById('detailsModal').style.display = 'flex';
+        }
+
+        function closeDetailsModal() {
+            document.getElementById('detailsModal').style.display = 'none';
+        }
+
+        /* FEEDBACK LOGIC */
+        function openFeedbackModal(id) {
+            document.getElementById('fId').value = id;
+            document.getElementById('feedbackModal').style.display = 'flex';
+        }
+
+        function closeFeedbackModal() {
+            document.getElementById('feedbackModal').style.display = 'none';
+        }
+
+        async function submitFeedback() {
+            const id = parseInt(document.getElementById('fId').value);
+            const rating = document.getElementById('fRating').value;
+            const comment = document.getElementById('fComment').value;
+
+            const feedbackData = {
+                feedback_rating: parseInt(rating),
+                feedback_comment: comment
+            };
+
+            const response = await apiCall(`resource-requests/${id}/`, "PATCH", feedbackData);
+
+            if (response) {
+                alert("Thank you for your feedback!");
+                closeFeedbackModal();
+                loadRequests();
+            }
+        }
+
+        async function loadRequests() {
+            const requests = await apiCall('resource-requests/', 'GET');
+            const container = document.getElementById('recentRequestsList');
+            if (requests && requests.length > 0) {
+                container.innerHTML = requests.map(r => `
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px; border-bottom: 1px solid #f1f5f9;">
+                        <div>
+                            <b>${r.item_name}</b>
+                            <div style="font-size: 11px; color: #64748b; margin-top: 2px;">
+                                Qty: ${r.quantity} · ${r.urgency} · ${new Date(r.created_at).toLocaleDateString()}
+                            </div>
+                        </div>
+                        <span class="status ${r.status.toLowerCase()}">${r.status}</span>
+                        <div style="display:flex; align-items:center; gap:10px;">
+                            ${r.status === 'Approved' ? (r.feedback_rating ? `<span style="font-size:12px; color:#f59e0b; font-weight:bold;">${'⭐'.repeat(r.feedback_rating)}</span>` : `<button onclick="openFeedbackModal(${r.id})" style="background:#fef3c7; color:#d97706; border:none; padding:6px 12px; border-radius:6px; font-size:11px; cursor:pointer; font-weight:600;">Rate</button>`) : ''}
+                            <button onclick="viewRequestDetails(${r.id})" style="border:1px solid #e2e8f0; background:white; padding:6px 12px; border-radius:6px; font-size:11px; cursor:pointer;">Details</button>
+                        </div>
+                    </div>
+                `).join('');
+            } else {
+                container.innerHTML = '<p style="color:#94a3b8; font-style:italic;">No recent requests found.</p>';
+            }
+        }
+
+        window.onload = async () => {
             syncSidebarSettings();
+
+            // Add click listeners to resource cards
+            document.querySelectorAll('.resource-card').forEach(card => {
+                card.onclick = () => {
+                    document.querySelectorAll('.resource-card').forEach(c => {
+                        c.classList.remove('selected');
+                        c.style.background = '#ffffff';
+                        c.style.borderColor = '#dbe4ff';
+                    });
+                    card.classList.add('selected');
+                    card.style.background = '#e6f0ff';
+                    card.style.borderColor = '#2b7cff';
+                };
+            });
+
+            await loadRequests();
         }
     </script>
 </body>

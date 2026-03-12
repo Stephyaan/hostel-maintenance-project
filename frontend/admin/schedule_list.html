@@ -1,0 +1,803 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Schedule List | HostelHub</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <script src="/static/js/main.js"></script>
+    <style>
+        /* ── Toolbar ─────────────────────────────── */
+        .toolbar {
+            background: #fff;
+            border-radius: 14px;
+            padding: 13px 18px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+        }
+
+        .tab-group {
+            display: flex;
+            gap: 4px;
+            background: #f1f5f9;
+            padding: 4px;
+            border-radius: 9px;
+        }
+
+        .tab-btn {
+            padding: 5px 13px;
+            border: none;
+            border-radius: 7px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            color: #64748b;
+            background: transparent;
+            transition: all 0.15s;
+        }
+
+        .tab-btn.active {
+            background: #fff;
+            color: #2b7cff;
+            box-shadow: 0 1px 5px rgba(0, 0, 0, 0.08);
+        }
+
+        .toolbar-right {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .toolbar-right input,
+        .toolbar-right select {
+            padding: 7px 11px;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 13px;
+            background: #fff;
+        }
+
+        /* ── List Container ──────────────────────── */
+        .report-section {
+            background: #fff;
+            border-radius: 14px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            overflow: hidden;
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 22px;
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        .section-header h3 {
+            margin: 0;
+            font-size: 14px;
+            color: #1e293b;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .item-count-badge {
+            background: #eff6ff;
+            color: #2b7cff;
+            font-size: 11px;
+            font-weight: 700;
+            padding: 2px 8px;
+            border-radius: 20px;
+        }
+
+        /* ── Schedule Row ────────────────────────── */
+        .schedule-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 14px 22px;
+            border-bottom: 1px solid #f8fafc;
+            transition: background 0.12s;
+        }
+
+        .schedule-row:hover {
+            background: #fafafa;
+        }
+
+        .schedule-row:last-child {
+            border-bottom: none;
+        }
+
+        .row-left {
+            display: flex;
+            align-items: center;
+            gap: 13px;
+        }
+
+        .date-badge {
+            background: #eff6ff;
+            color: #2b7cff;
+            padding: 7px 9px;
+            border-radius: 10px;
+            text-align: center;
+            min-width: 44px;
+            flex-shrink: 0;
+        }
+
+        .date-badge b {
+            font-size: 16px;
+            display: block;
+            line-height: 1.15;
+        }
+
+        .date-badge span {
+            font-size: 10px;
+            text-transform: uppercase;
+        }
+
+        .badge-missed {
+            background: #fef2f2;
+            color: #ef4444;
+        }
+
+        .badge-done {
+            background: #ecfdf5;
+            color: #10b981;
+        }
+
+        .row-title {
+            font-weight: 600;
+            font-size: 14px;
+            color: #1e293b;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+
+        .row-meta {
+            font-size: 12px;
+            color: #94a3b8;
+            margin-top: 2px;
+        }
+
+        .imp-tag {
+            font-size: 10px;
+            font-weight: 700;
+            padding: 2px 7px;
+            border-radius: 4px;
+            text-transform: uppercase;
+        }
+
+        .imp-high {
+            background: #fee2e2;
+            color: #b91c1c;
+        }
+
+        .imp-medium {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .imp-low {
+            background: #f1f5f9;
+            color: #475569;
+        }
+
+        /* Recurring badge */
+        .rec-badge {
+            font-size: 10px;
+            font-weight: 700;
+            padding: 2px 7px;
+            border-radius: 4px;
+            background: #f0fdf4;
+            color: #16a34a;
+            border: 1px solid #bbf7d0;
+        }
+
+        .row-right {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            flex-shrink: 0;
+        }
+
+        .status-pill {
+            padding: 3px 9px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        .pill-upcoming {
+            background: #fffbeb;
+            color: #d97706;
+        }
+
+        .pill-missed {
+            background: #fef2f2;
+            color: #ef4444;
+        }
+
+        .pill-done {
+            background: #ecfdf5;
+            color: #10b981;
+        }
+
+        .action-btn {
+            border: 1px solid #e2e8f0;
+            background: #fff;
+            color: #475569;
+            padding: 4px 9px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.15s;
+        }
+
+        .action-btn:hover {
+            background: #f1f5f9;
+        }
+
+        .notify-btn {
+            background: #ef4444;
+            color: #fff;
+            border: none;
+            padding: 4px 9px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .del-btn {
+            background: #fef2f2;
+            color: #ef4444;
+            border: 1px solid #fecaca;
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: 0.15s;
+        }
+
+        .del-btn:hover {
+            background: #ef4444;
+            color: #fff;
+        }
+
+        .worker-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 3px;
+            background: #eff6ff;
+            color: #2b7cff;
+            border-radius: 20px;
+            padding: 1px 7px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #cbd5e1;
+            font-size: 14px;
+        }
+
+        /* ── Modal ────────────────────────────────── */
+        .modal-box {
+            width: 470px !important;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="app admin-app">
+
+        <!-- SIDEBAR -->
+        <div class="sidebar">
+            <h2>HostelHub</h2>
+            <p class="portal-label">Admin Portal</p>
+            <ul>
+                <li onclick="location.href='/admin/dashboard.html'">Dashboard</li>
+                <li onclick="location.href='/admin/all_complaints.html'">All Complaints</li>
+                <li onclick="location.href='/admin/manage_workers.html'">Manage Workers</li>
+                <li onclick="location.href='/admin/manage_notices.html'">Manage Notices</li>
+                <li class="active" onclick="location.href='/admin/schedule.html'">Schedule</li>
+                <li onclick="location.href='/admin/settings.html'">Settings</li>
+            </ul>
+            <div class="sidebar-logout" onclick="logout()">Logout</div>
+        </div>
+
+        <!-- CONTENT -->
+        <div class="content">
+
+            <!-- Top bar -->
+            <div class="topbar" style="margin-bottom:20px;">
+                <div>
+                    <h2 id="pageTitle" style="margin:0;">All Schedules</h2>
+                    <p id="pageSubtitle" style="color:#94a3b8; margin:4px 0 0; font-size:13px;">All activities + this
+                        week's recurring tasks</p>
+                </div>
+                <div style="display:flex; align-items:center; gap:14px;">
+                    <button class="btn" onclick="openModal()">+ Add Schedule</button>
+                    <a href="/admin/schedule.html" style="text-decoration:none; color:#64748b; font-size:14px; font-weight:500;
+                               padding:5px 10px; transition:0.2s; display:inline-block;"
+                        onmouseover="this.style.color='#1e293b'; this.style.transform='translateX(-3px)';"
+                        onmouseout="this.style.color='#64748b'; this.style.transform='translateX(0)';">
+                        ← Back to Schedule
+                    </a>
+                </div>
+            </div>
+
+            <!-- Toolbar -->
+            <div class="toolbar">
+                <div class="tab-group">
+                    <button class="tab-btn" data-filter="all" onclick="setFilter('all', this)">All</button>
+                    <button class="tab-btn" data-filter="upcoming"
+                        onclick="setFilter('upcoming', this)">Upcoming</button>
+                    <button class="tab-btn" data-filter="missed" onclick="setFilter('missed', this)">Missed</button>
+                    <button class="tab-btn" data-filter="done" onclick="setFilter('done', this)">Completed</button>
+                    <button class="tab-btn" data-filter="high" onclick="setFilter('high', this)">🔴 High
+                        Priority</button>
+                </div>
+                <div class="toolbar-right">
+                    <input id="searchInput" placeholder="🔍 Search…" oninput="renderList()" style="width:170px;">
+                    <select id="sortSelect" onchange="renderList()">
+                        <option value="date-asc">Date ↑</option>
+                        <option value="date-desc">Date ↓</option>
+                        <option value="importance">Priority</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- List -->
+            <div class="report-section">
+                <div class="section-header">
+                    <h3 id="listLabel">📋 Activities <span class="item-count-badge" id="listCount">0</span></h3>
+                    <small style="color:#94a3b8; font-size:11px;">🔁 = auto-generated recurring task for this
+                        week</small>
+                </div>
+                <div id="scheduleList">
+                    <div class="empty-state">Loading…</div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- ===== ADD / EDIT MODAL ===== -->
+    <div id="scheduleModal" class="modal">
+        <div class="modal-box">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:18px;">
+                <h3 style="margin:0;" id="modalHeading">Schedule New Activity</h3>
+                <span onclick="closeModal()"
+                    style="cursor:pointer; color:#94a3b8; font-size:18px; line-height:1;">✕</span>
+            </div>
+
+            <input type="hidden" id="editingId">
+
+            <label>Activity Title</label>
+            <input id="sTitle" placeholder="e.g. Rooftop Water Tank Servicing">
+
+            <label>Area / Block</label>
+            <input id="sArea" placeholder="e.g. Block B — 2nd Floor">
+
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+                <div>
+                    <label>Date</label>
+                    <input type="date" id="sDate">
+                </div>
+                <div>
+                    <label>Time</label>
+                    <input type="time" id="sTime">
+                </div>
+            </div>
+
+            <label>Priority / Importance</label>
+            <select id="sImportance">
+                <option value="low">🟢 Low (Routine)</option>
+                <option value="medium">🟡 Medium (Important)</option>
+                <option value="high">🔴 High (Critical)</option>
+            </select>
+
+            <label>Notes (Optional)</label>
+            <textarea id="sNotes" placeholder="Any extra instructions…" style="width:100%; border:1px solid #e2e8f0; border-radius:8px; padding:10px;
+                       font-size:13px; resize:vertical; min-height:54px;
+                       box-sizing:border-box; font-family:inherit;"></textarea>
+
+            <div class="modal-actions" style="margin-top:18px;">
+                <button class="btn-outline" onclick="closeModal()">Cancel</button>
+                <button class="btn" onclick="saveSchedule()">Save Schedule</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let schedules = [];
+        let recurring = [];
+        let currentFilter = 'all';
+
+        // ── URL params ────────────────────────────────────
+        const params = new URLSearchParams(location.search);
+        const urlFilter = params.get('filter') || 'all';
+        const urlAdd = params.get('add');
+        const urlTitle = params.get('title') || '';
+        const urlArea = params.get('area') || '';
+        const urlDate = params.get('date') || '';
+
+        // ─────────────────────────────────────────────────
+        // RECURRENCE HELPERS  (same logic as schedule.html)
+        // ─────────────────────────────────────────────────
+        function matchesRecurrence(task, date) {
+            if (!task.is_active) return false;
+            const type = task.recurrence_type;
+            const val = task.recurrence_value || '';
+            if (type === 'daily') return true;
+            if (type === 'weekly' || type === 'biweekly') {
+                const days = val.split(',').map(n => parseInt(n.trim())).filter(n => !isNaN(n));
+                if (!days.includes(date.getDay())) return false;
+                if (type === 'biweekly') {
+                    const epoch = new Date('2024-01-01');
+                    const weekNum = Math.floor((date - epoch) / (7 * 24 * 60 * 60 * 1000));
+                    return weekNum % 2 === 0;
+                }
+                return true;
+            }
+            if (type === 'monthly') return date.getDate() === parseInt(val || '1');
+            if (type === 'quarterly') return [0, 3, 6, 9].includes(date.getMonth()) && date.getDate() === 1;
+            return false;
+        }
+
+        function recurrenceLabel(task) {
+            const DAY = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+            const val = task.recurrence_value || '';
+            switch (task.recurrence_type) {
+                case 'daily': return 'Every day';
+                case 'weekly': {
+                    const days = val.split(',').map(n => DAY[parseInt(n.trim())]).filter(Boolean);
+                    return 'Every ' + (days.join(' & ') || '—');
+                }
+                case 'biweekly': {
+                    const days = val.split(',').map(n => DAY[parseInt(n.trim())]).filter(Boolean);
+                    return 'Every 2 wks · ' + (days.join(' & ') || '—');
+                }
+                case 'monthly': return `${ordinal(parseInt(val) || 1)} of every month`;
+                case 'quarterly': return 'Every 3 months';
+                default: return task.recurrence_type;
+            }
+        }
+
+        function ordinal(n) {
+            const s = ['th', 'st', 'nd', 'rd'], v = n % 100;
+            return n + (s[(v - 20) % 10] || s[v] || s[0]);
+        }
+
+        // ── Generate this week's recurring entries ────────
+        function generateRecurringEntries() {
+            const now = new Date();
+            const wd = now.getDay();
+            const daysFromMon = wd === 0 ? 6 : wd - 1;
+            const monday = new Date(now);
+            monday.setDate(now.getDate() - daysFromMon);
+            monday.setHours(0, 0, 0, 0);
+
+            const entries = [];
+            recurring.forEach(task => {
+                if (!task.is_active) return;
+                for (let i = 0; i < 7; i++) {
+                    const d = new Date(monday);
+                    d.setDate(monday.getDate() + i);
+                    if (!matchesRecurrence(task, d)) continue;
+
+                    const timeStr = task.time || '08:00:00';
+                    const [h, m] = timeStr.split(':').map(Number);
+                    const dt = new Date(d);
+                    dt.setHours(h, m, 0, 0);
+
+                    // Correctly format the local date to YYYY-MM-DD to avoid UTC timezone shifts
+                    const yyyy = d.getFullYear();
+                    const mm = String(d.getMonth() + 1).padStart(2, '0');
+                    const dd = String(d.getDate()).padStart(2, '0');
+                    const dateStr = `${yyyy}-${mm}-${dd}`;
+                    entries.push({
+                        id: `rec_${task.id}_${dateStr}`,
+                        title: task.name,
+                        area: task.area || '',
+                        date: dateStr,
+                        time: timeStr,
+                        importance: task.importance || 'low',
+                        is_done: false,
+                        is_recurring: true,
+                        notes: `🔁 ${recurrenceLabel(task)}`,
+                        worker: '',
+                        _dt: dt
+                    });
+                }
+            });
+            return entries;
+        }
+
+        // ── Status helper (for regular schedules) ─────────
+        function getStatus(s) {
+            const now = new Date();
+            const dt = new Date(`${s.date}T${s.time || '00:00'}`);
+            if (s.is_done) return 'done';
+            return dt < now ? 'missed' : 'upcoming';
+        }
+
+        // Status for a recurring virtual entry
+        function getRecStatus(entry) {
+            return entry._dt < new Date() ? 'missed' : 'upcoming';
+        }
+
+        // ── Fetch all data ────────────────────────────────
+        async function fetchAll() {
+            const [schData, recData] = await Promise.all([
+                apiCall('schedules/', 'GET'),
+                apiCall('recurring-tasks/', 'GET')
+            ]);
+            if (schData) schedules = schData;
+            if (recData) recurring = recData;
+            setFilter(urlFilter, document.querySelector(`[data-filter="${urlFilter}"]`));
+        }
+
+        // ── Filter ────────────────────────────────────────
+        function setFilter(f, btn) {
+            currentFilter = f;
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            if (btn) btn.classList.add('active');
+
+            const labels = {
+                all: ['All Schedules', 'All one-off activities + this week\'s recurring tasks'],
+                upcoming: ['Upcoming', 'Activities not yet due (including recurring this week)'],
+                missed: ['Missed', 'Past-due activities that were skipped'],
+                done: ['Completed', 'One-off activities that have been marked done'],
+                high: ['High Priority', 'Critical activities only (importance = High)']
+            };
+            const [title, sub] = labels[f] || labels['all'];
+            document.getElementById('pageTitle').innerText = title;
+            document.getElementById('pageSubtitle').innerText = sub;
+            renderList();
+        }
+
+        // ── Render list ───────────────────────────────────
+        function renderList() {
+            const list = document.getElementById('scheduleList');
+            const search = document.getElementById('searchInput').value.toLowerCase();
+            const sortBy = document.getElementById('sortSelect').value;
+
+            // Build entries from backend (DB now includes generated recurring tasks)
+            const impOrder = { high: 0, medium: 1, low: 2 };
+
+            const now = new Date();
+            now.setHours(0, 0, 0, 0);
+            const nextWeek = new Date(now);
+            nextWeek.setDate(now.getDate() + 7);
+
+            let combined = []
+            if (schedules && Array.isArray(schedules)) {
+                combined = schedules.map(s => ({
+                    ...s,
+                    _status: getStatus(s),
+                    _dt: new Date(`${s.date}T${s.time || '00:00'}`)
+                }));
+            }
+
+            // Apply filter (Date range: today to +7 days, OR missed)
+            combined = combined.filter(e => {
+                const matchSearch = e.title.toLowerCase().includes(search) ||
+                    (e.area || '').toLowerCase().includes(search);
+                if (!matchSearch) return false;
+
+                const itemDate = new Date(e.date + 'T00:00:00');
+                
+                // Rules: 
+                // 1. If filtering for 'done', show all done
+                // 2. If filtering for 'missed', show all missed
+                // 3. Otherwise, only show within 7 days from now (proactive view)
+                
+                const isWithinWeek = itemDate >= now && itemDate <= nextWeek;
+                const isMissed = e._status === 'missed';
+                
+                if (currentFilter === 'all') return isWithinWeek || isMissed;
+                if (currentFilter === 'upcoming') return isWithinWeek && e._status === 'upcoming';
+                if (currentFilter === 'missed') return isMissed;
+                if (currentFilter === 'done') return e._status === 'done';
+                if (currentFilter === 'high') return e.importance === 'high' && (isWithinWeek || isMissed);
+                
+                return e._status === currentFilter;
+            });
+
+            // Sort
+            if (sortBy === 'date-asc') combined.sort((a, b) => a._dt - b._dt);
+            if (sortBy === 'date-desc') combined.sort((a, b) => b._dt - a._dt);
+            if (sortBy === 'importance') combined.sort((a, b) => (impOrder[a.importance] || 2) - (impOrder[b.importance] || 2));
+
+            document.getElementById('listCount').innerText = combined.length;
+
+            if (combined.length === 0) {
+                list.innerHTML = '<div class="empty-state">No activities match this filter.</div>';
+                return;
+            }
+
+            list.innerHTML = combined.map(e => {
+                const status = e._status;
+                const dateObj = new Date(e.date);
+                const day = dateObj.getDate();
+                const month = dateObj.toLocaleString('default', { month: 'short' }).toUpperCase();
+                const timeStr = (e.time || '').substring(0, 5);
+                const badgeCls = status === 'missed' ? 'badge-missed' : status === 'done' ? 'badge-done' : '';
+                const pillCls = `pill-${status}`;
+                const pillLbl = { upcoming: 'Upcoming', missed: 'Missed', done: 'Done' }[status] || status;
+                const impCls = `imp-${e.importance || 'low'}`;
+                const impLbl = { high: 'High', medium: 'Medium', low: 'Routine' }[e.importance] || '';
+                const recBadge = e.recurring_task ? `<span class="rec-badge">🔁 Recurring</span>` : '';
+                const notesTxt = e.notes ? `<span style="font-size:11px;color:#94a3b8;font-style:italic;">"${e.notes.substring(0, 45)}${e.notes.length > 45 ? '…' : ''}"</span>` : '';
+
+                // Actions
+                let actions = '';
+                if (status === 'upcoming') {
+                    actions = `
+                        <button class="action-btn" onclick="markAsDone('${e.id}')">✔ Done</button>
+                        <button class="action-btn" onclick="openEdit(${e.id})">Edit</button>
+                        <button class="del-btn"    onclick="deleteSchedule(${e.id})">🗑</button>`;
+                } else if (status === 'missed') {
+                    const safeTitle = (e.title || 'Untitled Activity').replace(/'/g, "\\'");
+                    actions = `
+                        <button class="notify-btn" onclick="notifySupervisor('${safeTitle}', this)">Notify Supervisor</button>
+                        <button class="del-btn"    onclick="deleteSchedule(${e.id})">🗑</button>`;
+                } else {
+                    actions = `<button class="del-btn" onclick="deleteSchedule(${e.id})">🗑</button>`;
+                }
+
+                return `
+                <div class="schedule-row">
+                    <div class="row-left">
+                        <div class="date-badge ${badgeCls}">
+                            <b>${day}</b><span>${month}</span>
+                        </div>
+                        <div>
+                            <div class="row-title">
+                                ${e.title}
+                                <span class="imp-tag ${impCls}">${impLbl}</span>
+                                ${recBadge}
+                            </div>
+                            <div class="row-meta">
+                                📍 ${e.area || '—'}${timeStr ? ' · ⏰ ' + timeStr : ''}
+                            </div>
+                            ${notesTxt ? `
+                            <div style="margin-top:4px; display:flex; gap:6px; flex-wrap:wrap;">
+                                ${notesTxt}
+                            </div>` : ''}
+                        </div>
+                    </div>
+                    <div class="row-right">
+                        <span class="status-pill ${pillCls}">${pillLbl}</span>
+                        ${actions}
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        // ── CRUD actions ──────────────────────────────────
+        async function markAsDone(id) {
+            const r = await apiCall(`schedules/${id}/`, 'PATCH', { is_done: true });
+            if (r) fetchAll();
+        }
+
+        async function deleteSchedule(id) {
+            if (!confirm('Delete this scheduled activity?')) return;
+            const r = await apiCall(`schedules/${id}/`, 'DELETE');
+            if (r !== null) { schedules = schedules.filter(s => s.id !== id); renderList(); }
+        }
+
+        async function notifySupervisor(task, btn) {
+            const payload = {
+                title: `Missed Task: ${task}`,
+                message: `The maintenance activity "${task}" was missed and requires immediate attention.`,
+                notif_type: 'missed',
+                sent_by: 'Admin'
+            };
+            const r = await apiCall('schedule-notifications/', 'POST', payload);
+            if (r) {
+                if (btn) {
+                    btn.innerText = '✓ Sent';
+                    btn.style.background = '#10b981';
+                    btn.disabled = true;
+                }
+            } else {
+                alert('Failed to send notification. Please try again.');
+            }
+        }
+
+        // ── Modal : Add / Edit ─────────────────────────────
+        function openModal(prefill = {}) {
+            document.getElementById('editingId').value = '';
+            document.getElementById('modalHeading').innerText = 'Schedule New Activity';
+            document.getElementById('sTitle').value = prefill.title || '';
+            document.getElementById('sArea').value = prefill.area || '';
+            document.getElementById('sDate').value = prefill.date || '';
+            document.getElementById('sTime').value = '';
+            document.getElementById('sImportance').value = 'low';
+            document.getElementById('sNotes').value = '';
+            document.getElementById('scheduleModal').style.display = 'flex';
+        }
+
+        function openEdit(id) {
+            const s = schedules.find(x => x.id === id);
+            if (!s) return;
+            document.getElementById('editingId').value = id;
+            document.getElementById('modalHeading').innerText = 'Edit Activity';
+            document.getElementById('sTitle').value = s.title;
+            document.getElementById('sArea').value = s.area;
+            document.getElementById('sDate').value = s.date;
+            document.getElementById('sTime').value = s.time || '';
+            document.getElementById('sImportance').value = s.importance || 'low';
+            document.getElementById('sNotes').value = s.notes || '';
+            document.getElementById('scheduleModal').style.display = 'flex';
+        }
+
+        function closeModal() {
+            document.getElementById('scheduleModal').style.display = 'none';
+        }
+
+        async function saveSchedule() {
+            const id = document.getElementById('editingId').value;
+            const title = document.getElementById('sTitle').value.trim();
+            const area = document.getElementById('sArea').value.trim();
+            const date = document.getElementById('sDate').value;
+            const timeRaw = document.getElementById('sTime').value;
+            const importance = document.getElementById('sImportance').value;
+            const notes = document.getElementById('sNotes').value.trim();
+
+            if (!title || !date) { 
+                alert('Please fill in Title and Date.'); 
+                return; 
+            }
+
+            // Send null if time is empty
+            const time = timeRaw || null;
+
+            const payload = { title, area, date, time, importance, is_done: false, notes };
+            
+            try {
+                const r = id
+                    ? await apiCall(`schedules/${id}/`, 'PATCH', payload)
+                    : await apiCall('schedules/', 'POST', payload);
+
+                if (r) { 
+                    closeModal(); 
+                    fetchAll(); 
+                } else {
+                    alert('Submission failed. Check your data or connection.');
+                }
+            } catch (err) {
+                console.error("Save failure:", err);
+                alert('An error occurred while saving.');
+            }
+        }
+
+        // ── Init ──────────────────────────────────────────
+        window.onload = async () => {
+            await fetchAll();
+            syncSidebarSettings();
+            if (urlAdd) {
+                openModal({ title: urlTitle, area: urlArea, date: urlDate });
+            }
+        };
+    </script>
+
+</body>
+
+</html>

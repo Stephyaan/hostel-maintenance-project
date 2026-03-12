@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Resource Demand Forecast | HostelHub</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <script src="/static/js/main.js"></script>
+    <style>
+        :root {
+            --primary: #2b7cff;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --slate-50: #f8fafc;
+            --slate-100: #f1f5f9;
+            --slate-200: #e2e8f0;
+            --slate-600: #475569;
+            --slate-700: #334155;
+        }
+
+        .container {
+            display: flex;
+            gap: 24px;
+            height: calc(100vh - 160px);
+            margin-top: 20px;
+        }
+
+        .list-panel {
+            flex: 1;
+            background: #fff;
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            border: 1px solid var(--slate-100);
+        }
+
+        .detail-panel {
+            width: 500px;
+            background: #fff;
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 4px 25px rgba(0, 0, 0, 0.06);
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+            border: 1px solid var(--slate-100);
+        }
+
+        .forecast-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .forecast-card {
+            background: #fff;
+            border: 1px solid var(--slate-100);
+            padding: 20px;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .forecast-card:hover {
+            transform: translateY(-2px);
+            border-color: var(--primary);
+            box-shadow: 0 4px 12px rgba(43, 124, 255, 0.08);
+        }
+
+        .forecast-card.active {
+            border-color: var(--primary);
+            background: #f0f7ff;
+            box-shadow: 0 4px 15px rgba(43, 124, 255, 0.1);
+        }
+
+        .stock-level {
+            height: 4px;
+            background: var(--slate-100);
+            border-radius: 2px;
+            margin-top: 10px;
+        }
+
+        .stock-fill {
+            height: 100%;
+            border-radius: 2px;
+        }
+
+        .request-item {
+            padding: 15px;
+            border-bottom: 1px solid var(--slate-100);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .request-item:last-child { border-bottom: none; }
+
+        .back-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--slate-100);
+            border: none;
+            padding: 8px 16px;
+            border-radius: 8px;
+            color: var(--slate-700);
+            font-weight: 700;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .back-btn:hover { background: var(--slate-200); }
+
+        .stat-badge {
+            font-size: 10px;
+            font-weight: 800;
+            padding: 3px 8px;
+            border-radius: 4px;
+            text-transform: uppercase;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 80px 20px;
+            color: var(--slate-600);
+        }
+    </style>
+</head>
+<body>
+    <div class="app supervisor-app">
+        <div class="sidebar">
+            <h2>HostelHub</h2>
+            <p style="color:#777;font-size:14px;">Supervisor Portal</p>
+            <ul>
+                <li onclick="location.href='/supervisor/dashboard.html'">Dashboard</li>
+                <li onclick="location.href='/supervisor/complaints.html'">Lifecycle Manager</li>
+                <li onclick="location.href='/supervisor/workers.html'">Manage Workers</li>
+                <li onclick="location.href='/supervisor/notices.html'">Notices</li>
+                <li class="active" onclick="location.href='/supervisor/reports.html'">Reports</li>
+            </ul>
+        </div>
+
+        <div class="content">
+            <div class="topbar">
+                <div style="display:flex; align-items:center; gap:20px;">
+                    <button onclick="location.href='/supervisor/reports.html'" class="back-btn">← Back</button>
+                    <div>
+                        <h2 style="margin:0;">📦 Resource Demand Forecast</h2>
+                        <p style="margin:4px 0 0; color:var(--slate-600);">Predictive insights for inventory and resource allocation</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="container">
+                <div class="list-panel">
+                    <div style="margin-bottom:20px;">
+                        <h3 style="margin:0;">High-Usage Demands</h3>
+                    </div>
+                    
+                    <div id="resourceForecastGrid" class="forecast-grid">
+                        <!-- JS Rendered aggregated items -->
+                    </div>
+
+                    <div style="margin-top:20px; border-top:1px solid var(--slate-100); padding-top:20px;">
+                        <h4 style="margin:0 0 15px; color:var(--slate-600); font-size:12px; text-transform:uppercase; letter-spacing:1px;">Recent Individual Requests</h4>
+                        <div id="allRequestsList" style="flex:1; overflow-y:auto;">
+                            <!-- JS Rendered individual requests -->
+                        </div>
+                    </div>
+                </div>
+
+                <div class="detail-panel" id="detailPanel">
+                    <div class="empty-state">
+                        <div style="font-size: 48px; margin-bottom: 20px; opacity: 0.3;">📦</div>
+                        <h3>Select a Resource</h3>
+                        <p>Detailed demand analysis and requester history for specific inventory items.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let allRequests = [];
+        let aggregatedData = {};
+        let selectedItemName = null;
+
+        async function loadData() {
+            const requests = await apiCall('resource-requests/', 'GET');
+            if (requests) {
+                allRequests = requests;
+                processAggregation();
+                renderGrid();
+                renderAllRequests();
+            }
+        }
+
+        function processAggregation() {
+            aggregatedData = {};
+            allRequests.forEach(r => {
+                if (!aggregatedData[r.item_name]) {
+                    aggregatedData[r.item_name] = {
+                        count: 0,
+                        totalQty: 0,
+                        pending: 0,
+                        approved: 0,
+                        urgent: 0
+                    };
+                }
+                aggregatedData[r.item_name].count++;
+                aggregatedData[r.item_name].totalQty += (r.quantity || 1);
+                if (r.status === 'Pending') aggregatedData[r.item_name].pending++;
+                if (r.status === 'Approved') aggregatedData[r.item_name].approved++;
+                if (r.urgency === 'Urgent') aggregatedData[r.item_name].urgent++;
+            });
+        }
+
+        function renderGrid() {
+            const container = document.getElementById('resourceForecastGrid');
+            const items = Object.entries(aggregatedData).sort((a,b) => b[1].totalQty - a[1].totalQty);
+
+            if (items.length === 0) {
+                container.innerHTML = '<div class="empty-state">No resource requests recorded in the system.</div>';
+                return;
+            }
+
+            container.innerHTML = items.map(([name, data]) => {
+                const isUrgent = data.urgent > 0;
+                return `
+                    <div class="forecast-card ${selectedItemName === name ? 'active' : ''}" onclick="selectItem('${name}')">
+                        <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+                            <div style="font-weight:800; color:var(--slate-700); font-size:14px;">${name}</div>
+                            ${isUrgent ? '<span class="stat-badge" style="background:#fee2e2; color:var(--danger);">🔥 Critical</span>' : ''}
+                        </div>
+                        <div style="margin-top:10px; display:flex; gap:15px; align-items:flex-end;">
+                            <div style="font-size:24px; font-weight:800; color:var(--primary); line-height:1;">${data.totalQty}</div>
+                            <div style="font-size:11px; color:var(--slate-600); padding-bottom:3px;">Units Requested</div>
+                        </div>
+                        <div class="stock-level">
+                            <div class="stock-fill" style="width:${Math.min(100, data.totalQty * 5)}%; background:${isUrgent ? 'var(--danger)' : 'var(--primary)'}"></div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function renderAllRequests() {
+            const container = document.getElementById('allRequestsList');
+            container.innerHTML = allRequests.slice().reverse().map(r => `
+                <div class="request-item">
+                    <div>
+                        <div style="font-weight:700; color:var(--slate-700);">${r.item_name} (x${r.quantity || 1})</div>
+                        <div style="font-size:11px; color:var(--slate-600); margin-top:2px;">
+                            ${new Date(r.created_at).toLocaleDateString()} · ${r.urgency}
+                        </div>
+                    </div>
+                    <span class="stat-badge" style="background:${getStatusBg(r.status)}; color:${getStatusColor(r.status)}">${r.status}</span>
+                </div>
+            `).join('');
+        }
+
+        function selectItem(name) {
+            selectedItemName = name;
+            renderGrid();
+            const data = aggregatedData[name];
+            const itemRequests = allRequests.filter(r => r.item_name === name);
+            const panel = document.getElementById('detailPanel');
+
+            panel.innerHTML = `
+                <div style="border-bottom:1px solid var(--slate-100); padding-bottom:20px; margin-bottom:25px;">
+                    <h2 style="margin:0;">${name}</h2>
+                    <div style="margin-top:5px; color:var(--slate-600); font-weight:600;">Full Demand Breakdown</div>
+                </div>
+
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:15px; margin-bottom:30px;">
+                    <div style="background:var(--slate-50); padding:15px; border-radius:12px;">
+                        <div style="font-size:10px; color:var(--slate-600); font-weight:800; text-transform:uppercase;">Total Demand</div>
+                        <div style="font-size:24px; font-weight:800; color:var(--primary);">${data.totalQty}</div>
+                        <div style="font-size:11px; color:var(--slate-600);">Total units needed</div>
+                    </div>
+                    <div style="background:var(--slate-50); padding:15px; border-radius:12px;">
+                        <div style="font-size:10px; color:var(--slate-600); font-weight:800; text-transform:uppercase;">Urgent Requests</div>
+                        <div style="font-size:24px; font-weight:800; color:var(--danger);">${data.urgent}</div>
+                        <div style="font-size:11px; color:var(--slate-600);">Critical shortages</div>
+                    </div>
+                </div>
+
+                <div>
+                    <h4 style="margin:0 0 15px; color:var(--slate-600); font-size:12px; text-transform:uppercase; letter-spacing:1px;">Demand History</h4>
+                    ${itemRequests.slice().reverse().map(r => `
+                        <div style="padding:15px; border:1px solid var(--slate-100); border-radius:12px; margin-bottom:12px; background:white;">
+                            <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+                                <div style="font-weight:700; color:var(--slate-700);">Qty: ${r.quantity || 1}</div>
+                                <span class="stat-badge" style="background:${getStatusBg(r.status)}; color:${getStatusColor(r.status)}">${r.status}</span>
+                            </div>
+                            <div style="margin-top:10px; font-size:13px; color:var(--slate-600); line-height:1.4;">
+                                "${r.description || 'No additional details provided.'}"
+                            </div>
+                            <div style="margin-top:12px; padding-top:12px; border-top:1px solid var(--slate-50); font-size:11px; color:var(--slate-600); display:flex; justify-content:space-between;">
+                                <span>🗓️ ${new Date(r.created_at).toLocaleString()}</span>
+                                <span>⚠️ ${r.urgency}</span>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+        }
+
+        function getStatusBg(s) {
+            if (s === 'Pending') return '#fef3c7';
+            if (s === 'Approved') return '#dcfce7';
+            return '#f1f5f9';
+        }
+
+        function getStatusColor(s) {
+            if (s === 'Pending') return '#92400e';
+            if (s === 'Approved') return '#166534';
+            return '#475569';
+        }
+
+        window.onload = async () => {
+            await loadData();
+            syncSidebarSettings();
+        };
+    </script>
+</body>
+</html>

@@ -2,9 +2,10 @@
 <html>
 
 <head>
+    <meta charset="UTF-8">
     <title>Lifecycle Manager | Supervisor</title>
-    <link rel="stylesheet" href="../static/css/style.css">
-    <script src="../static/js/main.js"></script>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <script src="/static/js/main.js"></script>
     <style>
         .pipeline-tabs {
             display: flex;
@@ -133,18 +134,18 @@
 
 <body>
 
-    <div class="app">
+    <div class="app supervisor-app">
 
         <!-- Sidebar -->
         <div class="sidebar">
             <h2>HostelHub</h2>
             <p style="color:#777;font-size:14px;">Supervisor Portal</p>
             <ul>
-                <li onclick="location.href='dashboard.html'">Dashboard</li>
-                <li class="active">Lifecycle Manager</li>
-                <li onclick="location.href='workers.html'">Manage Workers</li>
-                <li onclick="location.href='notices.html'">Notices</li>
-                <li onclick="location.href='reports.html'">Reports</li>
+                <li onclick="location.href='/supervisor/dashboard.html'">Dashboard</li>
+                <li class="active" onclick="location.href='/supervisor/complaints.html'">Lifecycle Manager</li>
+                <li onclick="location.href='/supervisor/workers.html'">Manage Workers</li>
+                <li onclick="location.href='/supervisor/notices.html'">Notices</li>
+                <li onclick="location.href='/supervisor/reports.html'">Reports</li>
             </ul>
             <div class="sidebar-logout" onclick="logout()">
                 Logout
@@ -176,6 +177,18 @@
         </div>
     </div>
 
+
+    <!-- DETAILS MODAL -->
+    <div id="detailsModal" class="modal">
+        <div class="modal-box" style="width: 500px;">
+            <h3 id="detailsTitle">Details</h3>
+            <div class="modal-body" id="detailsBody" style="margin: 20px 0; line-height: 1.6;"></div>
+            <div class="modal-footer" style="display: flex; justify-content: flex-end; gap: 10px;">
+                <button class="btn-sm btn-outline" onclick="closeDetailsModal()">Close</button>
+            </div>
+        </div>
+    </div>
+
     <!-- TRIAGE MODAL -->
     <div id="triageModal" class="modal">
         <div class="modal-box" style="width: 500px;">
@@ -188,7 +201,7 @@
                 ⚠️ <b>Potential Duplicate Detected:</b> Another complaint for Block A plumbing was filed in last 24h.
             </div>
 
-            <label>Verify Genuinity</label>
+            <label>Verify Genuineness</label>
             <div style="display: flex; gap: 10px; margin-bottom: 15px;">
                 <button class="btn-sm" style="background:#dcfce7; color:#166534; flex:1;" id="btn-genuine"
                     onclick="markGenuine(true)">Genuine</button>
@@ -200,11 +213,10 @@
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
                     <div>
                         <label>Category</label>
-                        <select id="t-cat">
-                            <option>Plumbing</option>
-                            <option>Electrical</option>
-                            <option>Furniture</option>
+                        <select id="t-cat" onchange="updateTriageETR(this.value)">
+                            <option value="">Loading categories...</option>
                         </select>
+                        <small id="triage-etr-info" style="color:#64748b; font-size:11px;"></small>
                     </div>
                     <div>
                         <label>Priority</label>
@@ -241,6 +253,56 @@
         </div>
     </div>
 
+    <!-- RESOLUTION PROOF MODAL -->
+    <div id="resolutionModal" class="modal">
+        <div class="modal-box" style="width: 450px; padding: 30px;">
+            <div style="text-align: center; margin-bottom: 20px;">
+                <div
+                    style="width: 60px; height: 60px; background: #f0fdf4; color: #10b981; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 15px; font-size: 24px;">
+                    ✔️
+                </div>
+                <h3 style="margin: 0; color: #1e293b;">Mark as Resolved</h3>
+                <p style="font-size: 14px; color: #64748b; margin-top: 5px;">Please provide proof of the maintenance
+                    fix.</p>
+            </div>
+
+            <div id="proofRequirementNotice"
+                style="display: none; background: #fffbeb; padding: 12px; border-radius: 8px; border: 1px solid #fde68a; margin-bottom: 20px;">
+                <p style="font-size: 12px; color: #92400e; margin: 0;"><b>Mandatory:</b> Admin settings require proof of
+                    resolution for this task.</p>
+            </div>
+
+            <label>Resolution Summary</label>
+            <textarea id="res-summary"
+                placeholder="Describe what was fixed (e.g. replaced washers and checked pressure)..."
+                style="width: 100%; height: 80px; padding: 10px; border: 1px solid #e2e8f0; border-radius: 8px; margin-bottom: 15px; font-family: inherit;"></textarea>
+
+            <label>Attach Evidence (Photo/Doc)</label>
+            <div style="margin-bottom: 20px;">
+                <input type="file" id="res-file" accept="image/*" style="display: none;"
+                    onchange="handleFileSelect(event)">
+                <button type="button" class="btn-outline"
+                    style="width: 100%; height: 50px; display: flex; align-items: center; justify-content: center; gap: 10px; border-style: dashed; border-width: 2px;"
+                    onclick="document.getElementById('res-file').click()">
+                    <span>📁</span> <span id="file-label">Choose File or Photo</span>
+                </button>
+                <div id="file-preview-container" style="display: none; margin-top: 10px; position: relative;">
+                    <img id="file-preview" src=""
+                        style="width: 100%; max-height: 150px; object-fit: cover; border-radius: 8px;">
+                    <button type="button"
+                        style="position: absolute; top: 5px; right: 5px; background: rgba(0,0,0,0.5); color: white; border: none; border-radius: 50%; width: 20px; height: 20px; cursor: pointer;"
+                        onclick="clearFileSelection()">×</button>
+                </div>
+            </div>
+
+            <div class="modal-footer" style="padding: 0; border: none;">
+                <button class="btn-outline" style="flex: 1;" onclick="closeResolutionModal()">Cancel</button>
+                <button class="btn" style="flex: 1; background: #10b981;" onclick="confirmResolution()">Complete
+                    Fix</button>
+            </div>
+        </div>
+    </div>
+
     <script>
         // Update button text dynamically
         document.addEventListener('change', (e) => {
@@ -263,7 +325,9 @@
         // (approval is a local-only state we keep in memory for now)
         function statusToTab(status) {
             if (status === 'Pending') return 'incoming';
-            if (status === 'Awaiting Approval') return 'approval';
+            if (status === 'Awaiting Approval') {
+                return approvalRequiredByAdmin ? 'approval' : 'wip';
+            }
             if (status === 'In Progress') return 'wip';
             if (status === 'Resolved') return 'review';
             return 'incoming';
@@ -274,7 +338,7 @@
             const [complaints, workers, requests, settings] = await Promise.all([
                 apiCall('complaints/', 'GET'),
                 apiCall('workers/', 'GET'),
-                apiCall('resources/', 'GET'),
+                apiCall('resource-requests/', 'GET'),
                 apiCall('settings/', 'GET')
             ]);
 
@@ -287,16 +351,29 @@
         }
 
         let approvalRequiredByAdmin = false;
+        let mandatoryResolutionProof = false;
+        let satisfactionFeedbackEnabled = false;
+        let ruleBasedPriorityEnabled = false;
+        let duplicateDetectionEnabled = false;
 
         function applySettings(settings) {
             if (!settings) return;
 
-            // USER REQUESTED: Toggle ON means NO approval needed (Direct submit)
-            // Toggle OFF means approval IS needed (Forward to Admin)
+            // USER REQUESTED: Toggle ON means approval IS needed (Forward to Admin)
             const approvalSetting = settings.find(s => s.key === 'complaint_request_approval');
+            approvalRequiredByAdmin = (approvalSetting && approvalSetting.value === true);
 
-            // If setting exists and is FALSE (OFF), then approval IS required
-            approvalRequiredByAdmin = (approvalSetting && approvalSetting.value === false);
+            // Mandatory Proof of Resolution
+            const proofSetting = settings.find(s => s.key === 'mandatory_resolution_proof');
+            mandatoryResolutionProof = (proofSetting && proofSetting.value === true);
+
+            // Rule-Based Priority
+            const ruleSetting = settings.find(s => s.key === 'rule_based_priority');
+            ruleBasedPriorityEnabled = ruleSetting ? ruleSetting.value === true : false;
+
+            // Duplicate Detection
+            const dupSetting = settings.find(s => s.key === 'duplicate_detection');
+            duplicateDetectionEnabled = dupSetting ? dupSetting.value === true : false;
 
             const btn = document.getElementById('btn-submit-triage');
             if (approvalRequiredByAdmin) {
@@ -310,6 +387,10 @@
             // Hide the manual checkbox as the workflow is now centrally controlled
             const approvalBox = document.getElementById('need-approval').parentElement.parentElement;
             approvalBox.style.display = 'none';
+
+            // Satisfaction Feedback
+            const feedbackSetting = settings.find(s => s.key === 'satisfaction_feedback');
+            satisfactionFeedbackEnabled = (feedbackSetting && feedbackSetting.value === true);
         }
 
         // ── Render the active tab ──────────────────────────────────────────
@@ -336,6 +417,7 @@
                                     <span class="status-pill pending">New Request</span>
                                 </div>
                                 <div class="action-bar">
+                                    <button class="btn-sm" style="background:#2b7cff; color:white;" onclick="viewRequestDetails(${r.id})">View Details</button>
                                     <button class="btn-sm" style="background:#10b981; color:white;" onclick="handleRequest(${r.id}, 'Approved')">Approve</button>
                                     <button class="btn-sm" style="background:#ef4444; color:white;" onclick="handleRequest(${r.id}, 'Rejected')">Reject</button>
                                 </div>
@@ -349,56 +431,142 @@
             // ── COMPLAINT TABS ──
             const filtered = allComplaints.filter(c => statusToTab(c.status) === activeTab);
 
+            // If we are in Quality Check, also draw the finished requests
+            if (activeTab === 'review') {
+                const finishedRequests = allRequests.filter(r => r.status === 'Approved');
+
+                // Merge and sort by updated/created? Just draw them.
+                if (filtered.length === 0 && finishedRequests.length === 0) {
+                    container.innerHTML = `<div style="text-align:center; padding: 50px; color: #94a3b8;">No tasks in this stage.</div>`;
+                    updateCounts();
+                    return;
+                }
+
+                // Render Complaints (same logic as before)
+                filtered.forEach(c => renderItem(c, 'complaint'));
+                // Render Requests
+                finishedRequests.forEach(r => renderItem(r, 'request'));
+
+                updateCounts();
+                return;
+            }
+
             if (filtered.length === 0) {
                 container.innerHTML = `<div style="text-align:center; padding: 50px; color: #94a3b8;">No tasks in this stage.</div>`;
                 updateCounts();
                 return;
             }
 
-            filtered.forEach(c => {
-                const dateStr = new Date(c.created_at).toLocaleDateString();
-                const color = getTabColor(activeTab);
-                const workerName = c.assigned_worker_name || '—';
+            filtered.forEach(c => renderItem(c, 'complaint'));
+
+            updateCounts();
+        }
+
+        function renderItem(item, type) {
+            const container = document.getElementById('complaint-container');
+            const dateStr = new Date(item.created_at).toLocaleDateString();
+            const color = getTabColor(activeTab);
+
+            const feedbackArea = `
+                <div style="margin-top:15px; padding-top:15px; border-top: 1px dashed #e2e8f0;">
+                    ${item.feedback_rating
+                    ? `<div style="color:#f59e0b; display:flex; align-items:center; gap:8px;">
+                             <span>${'★'.repeat(item.feedback_rating)}${'☆'.repeat(5 - item.feedback_rating)}</span>
+                             <b style="font-size:12px; color:#1e293b;">${item.feedback_rating}/5</b>
+                             ${item.feedback_comment ? `<p style="font-size:12px; color:#64748b; font-style:italic; margin-left:10px; border-left:2px solid #e2e8f0; padding-left:10px;">"${item.feedback_comment}"</p>` : ''}
+                           </div>`
+                    : (satisfactionFeedbackEnabled ? `
+                           <div style="display:flex; align-items:center; gap:8px;">
+                             <span style="color:#cbd5e1;">☆☆☆☆☆</span>
+                             <span style="font-size:11px; color:#94a3b8; font-style:italic;">Pending student feedback...</span>
+                           </div>
+                        ` : '')
+                }
+                </div>
+            `;
+
+            if (type === 'complaint') {
+                const workerName = item.assigned_worker_name || '—';
 
                 container.insertAdjacentHTML('beforeend', `
                     <div class="complaint-card" style="border-left-color:${color}">
                         <div class="complaint-header">
                             <div>
-                                <small style="color:#64748b; font-weight:600;">#${c.id} · ${dateStr}</small>
-                                <h3 style="margin:5px 0;">${c.title}</h3>
+                                <small style="color:#64748b; font-weight:600;">#${item.id} · ${dateStr} · <strong style="color:var(--primary);">${item.category || 'Maintenance'}</strong> (ETR: ${item.etr_hours || 24}h)</small>
+                                <span class="priority-badge ${item.priority === 'High' ? 'p-high' : item.priority === 'Medium' ? 'p-med' : 'p-low'}">${item.priority}</span>
+                                <h3 style="margin:5px 0;">${item.title}</h3>
                                 <p style="font-size:13px; color:#475569;">
-                                    📍 ${c.room} &nbsp;·&nbsp;
-                                    👤 ${c.student_name || 'Student'} &nbsp;·&nbsp;
-                                    <span class="priority-badge p-${c.priority.toLowerCase().substring(0, 3)}">${c.priority}</span>
+                                    📍 ${item.room} &nbsp;·&nbsp;
+                                    👤 ${item.is_anonymous ? 'Anonymous' : (item.student_name || 'Student')} &nbsp;·&nbsp;
+                                    🛠️ ${workerName}
                                 </p>
                             </div>
-                            ${activeTab === 'incoming' ? '<span class="status-pill pending">New Task</span>' : ''}
-                            ${activeTab === 'approval' ? '<span class="status-pill progress" style="background:#fef3c7; color:#d97706;">⌛ Awaiting Admin</span>' : ''}
-                            ${activeTab === 'wip' ? `<span class="status-pill progress">👷 ${workerName}</span>` : ''}
-                            ${activeTab === 'review' ? '<span class="status-pill resolved">✅ Resolved</span>' : ''}
+                            <span class="status-pill ${activeTab}">#${item.id}</span>
                         </div>
-                        <p style="font-size:13px; color:#64748b; line-height:1.5;">${c.description}</p>
-                        <div class="action-bar">${getActionBtns(c)}</div>
-                    </div>`);
-            });
+                        <p style="font-size:13px; color:#64748b; line-height:1.5; margin-bottom:10px;">${item.description}</p>
+                        
+                        ${item.resolution_proof ? `
+                            <div style="margin-top:10px; padding:12px; background:#f0fdf4; border-radius:10px; border:1px solid #bbf7d0;">
+                                <b style="font-size:11px; color:#166534; text-transform:uppercase;">📸 Resolution Evidence:</b>
+                                ${item.resolution_proof.startsWith('data:image/')
+                            ? `<img src="${item.resolution_proof}" style="width:100%; max-height:200px; object-fit:cover; border-radius:8px; margin-top:8px; cursor:pointer; border:1px solid #dcfce7;" onclick="window.open(this.src)">`
+                            : `<p style="font-size:13px; color:#1e293b; margin:8px 0 0 0; line-height:1.4;">${item.resolution_proof}</p>`
+                        }
+                            </div>
+                        ` : ''}
 
-            updateCounts();
+                        ${activeTab === 'review' ? feedbackArea : ''}
+                        
+                        <div class="action-bar">
+                            ${getActionBtns(item)}
+                        </div>
+                    </div>`);
+            } else if (type === 'request') {
+                container.insertAdjacentHTML('beforeend', `
+                    <div class="complaint-card" style="border-left-color: #ec4899;">
+                        <div class="complaint-header">
+                            <div>
+                                <small style="color:#64748b; font-weight:600;">#REQ-${item.id} · ${dateStr}</small>
+                                <h3 style="margin:5px 0;">📦 Request: ${item.item_name}</h3>
+                                <p style="font-size:13px; color:#475569;">👤 ${item.student_name} · 📍 Room ${item.student || ''}</p>
+                            </div>
+                            <span class="status-pill resolved" style="background:#fdf2f7; color:#db2777;">📦 Finished</span>
+                        </div>
+                        <p style="font-size:13px; color:#64748b; line-height:1.5;">${item.description || 'No description provided.'}</p>
+                        ${feedbackArea}
+                        <div class="action-bar">
+                            <button class="btn-sm" style="background:#2b7cff; color:white;" onclick="viewRequestDetails(${item.id})">View Details</button>
+                            <span style="font-size:12px; color:#db2777; font-weight:600;">✅ This request has been fulfilled.</span>
+                        </div>
+                    </div>`);
+            }
         }
 
         function getActionBtns(c) {
             if (activeTab === 'incoming') {
-                return `<button class="btn-sm" style="background:#2b7cff; color:white;" onclick="openTriage(${c.id})">Start Triage &amp; Verify</button>`;
+                return `
+                    <button class="btn-sm" style="background:#2b7cff; color:white;" onclick="viewComplaintDetails(${c.id})">View Details</button>
+                    <button class="btn-sm" style="background:#2b7cff; color:white;" onclick="openTriage(${c.id})">Start Triage &amp; Verify</button>
+                `;
             }
             if (activeTab === 'approval') {
-                return `<span style="font-size:12px; color:#d97706; font-weight:600;">⏳ This task is pending Admin budget/cost approval.</span>`;
+                return `
+                    <button class="btn-sm" style="background:#2b7cff; color:white;" onclick="viewComplaintDetails(${c.id})">View Details</button>
+                    <span style="font-size:12px; color:#d97706; font-weight:600;">⏳ This task is pending Admin budget/cost approval.</span>
+                `;
             }
             if (activeTab === 'wip') {
                 return `
+                    <button class="btn-sm" style="background:#2b7cff; color:white;" onclick="viewComplaintDetails(${c.id})">View Details</button>
                     <button class="btn-sm btn-outline" onclick="alert('Reminder sent to worker.')">Send Reminder</button>
-                    <button class="btn-sm" style="background:#10b981; color:white;" onclick="markResolved(${c.id})">Mark Resolved</button>`;
+                    <button class="btn-sm" style="background:#10b981; color:white;" onclick="markResolved(${c.id})">Mark Resolved</button>
+                `;
             }
             if (activeTab === 'review') {
-                return `<span style="font-size:12px; color:#15803d; font-weight:600;">✅ This complaint has been resolved.</span>`;
+                return `
+                    <button class="btn-sm" style="background:#2b7cff; color:white;" onclick="viewComplaintDetails(${c.id})">View Details</button>
+                    <span style="font-size:12px; color:#15803d; font-weight:600;">✅ This complaint has been resolved.</span>
+                `;
             }
             return '';
         }
@@ -410,7 +578,12 @@
         function updateCounts() {
             document.getElementById('count-incoming').innerText = allComplaints.filter(c => statusToTab(c.status) === 'incoming').length;
             document.getElementById('count-wip').innerText = allComplaints.filter(c => statusToTab(c.status) === 'wip').length;
-            document.getElementById('count-review').innerText = allComplaints.filter(c => statusToTab(c.status) === 'review').length;
+
+            // Quality check count includes Resolved complaints + Approved Requests
+            const resolvedComplaints = allComplaints.filter(c => statusToTab(c.status) === 'review').length;
+            const approvedRequests = allRequests.filter(r => r.status === 'Approved').length;
+            document.getElementById('count-review').innerText = resolvedComplaints + approvedRequests;
+
             document.getElementById('count-approval').innerText = allComplaints.filter(c => statusToTab(c.status) === 'approval').length;
             document.getElementById('count-requests').innerText = allRequests.filter(r => r.status === 'Pending').length;
         }
@@ -423,7 +596,7 @@
         }
 
         // ── TRIAGE MODAL ──────────────────────────────────────────────────
-        function openTriage(id) {
+        async function openTriage(id) {
             currentEditingId = id;
             const c = allComplaints.find(x => x.id === id);
             document.getElementById('t-desc').innerText = `"${c.description}"`;
@@ -433,13 +606,82 @@
             document.getElementById('btn-genuine').style.background = '';
             document.getElementById('btn-genuine').style.color = '';
 
-            // Populate worker dropdown from real workers
+            // Populate worker dropdown from real workers (only active ones)
             const sel = document.getElementById('t-worker');
-            sel.innerHTML = allWorkers.length
-                ? allWorkers.map(w => `<option value="${w.id}">${w.name} (${w.skill})</option>`).join('')
+            const activeWorkers = allWorkers.filter(w => w.is_active !== false);
+            sel.innerHTML = activeWorkers.length
+                ? activeWorkers.map(w => `<option value="${w.id}">${w.name} (${w.skill})</option>`).join('')
                 : '<option value="">No workers available</option>';
 
-            document.getElementById('dup-warning').style.display = 'none';
+            // Populate category dropdown from API
+            const catSel = document.getElementById('t-cat');
+            catSel.innerHTML = '<option value="">Loading...</option>';
+            window._triageCategories = await apiCall('categories/', 'GET') || [];
+            catSel.innerHTML = window._triageCategories.map(cat =>
+                `<option value="${cat.name}" data-etr="${cat.etr_hours}" data-priority="${cat.default_priority}">${cat.name}</option>`
+            ).join('');
+
+            // Pre-select complaint's current category if it matches
+            if (c.category) {
+                catSel.value = c.category;
+            }
+            updateTriageETR(catSel.value);
+
+            // Rule-Based Priority logic
+            const prioritySection = document.getElementById('t-pri').parentElement;
+            if (ruleBasedPriorityEnabled) {
+                prioritySection.style.display = 'none';
+            } else {
+                prioritySection.style.display = 'block';
+            }
+
+            // Duplicate Detection (Real-time Cross-Audit)
+            const dupWarning = document.getElementById('dup-warning');
+
+            // Check if this room had ANY other report in the last 24h
+            const cTime = new Date(c.created_at).getTime();
+            const hasOverlappingReport = allComplaints.some(other => {
+                if (other.id === c.id) return false;
+                if (other.room !== c.room) return false;
+                const otherTime = new Date(other.created_at).getTime();
+                // Check if within 24h window (any direction)
+                return Math.abs(cTime - otherTime) < (24 * 60 * 60 * 1000);
+            });
+
+            if (duplicateDetectionEnabled && (c.is_duplicate || hasOverlappingReport)) {
+                dupWarning.style.display = 'block';
+                dupWarning.style.background = '#fff1f2';
+                dupWarning.style.borderColor = '#fda4af';
+                dupWarning.style.borderStyle = 'solid';
+                dupWarning.innerHTML = `
+                    <div style="display:flex; align-items:center; gap:8px;">
+                        <span style="font-size:18px;">⚠️</span>
+                        <div>
+                            <b style="color:#e11d48;">Smart Audit: Potential Duplicate</b><br>
+                            Another complaint from <b>${c.room}</b> was found within a 24-hour window.
+                        </div>
+                    </div>`;
+            } else {
+                dupWarning.style.display = 'none';
+            }
+        }
+
+        function updateTriageETR(selectedCatName) {
+            const cats = window._triageCategories || [];
+            const cat = cats.find(c => c.name === selectedCatName);
+            const etrInfo = document.getElementById('triage-etr-info');
+            if (cat) {
+                etrInfo.innerText = `⏱ ETR: ${cat.etr_hours}h | Default Priority: ${cat.default_priority}`;
+
+                // If rule-based is on, auto-set priority select
+                if (ruleBasedPriorityEnabled) {
+                    const priSel = document.getElementById('t-pri');
+                    const valMap = { 'Low': 'low', 'Medium': 'med', 'High': 'high' };
+                    priSel.value = valMap[cat.default_priority] || 'low';
+                }
+            } else {
+                etrInfo.innerText = '';
+            }
         }
 
         function markGenuine(isTrue) {
@@ -458,11 +700,26 @@
 
         async function submitTriage() {
             const workerId = document.getElementById('t-worker').value;
+            const category = document.getElementById('t-cat').value;
             const needsAdmin = approvalRequiredByAdmin;
+
+            // Get priority: if rule-based, pick from category; else from dropdown
+            let priority;
+            if (ruleBasedPriorityEnabled) {
+                const cats = window._triageCategories || [];
+                const cat = cats.find(c => c.name === category);
+                priority = cat ? cat.default_priority : 'Low';
+            } else {
+                const priRaw = document.getElementById('t-pri').value;
+                const priMap = { 'low': 'Low', 'med': 'Medium', 'high': 'High' };
+                priority = priMap[priRaw] || 'Low';
+            }
 
             const patchData = {
                 status: needsAdmin ? 'Awaiting Approval' : 'In Progress',
-                assigned_worker: workerId || null
+                assigned_worker: workerId || null,
+                category: category,
+                priority: priority
             };
 
             const updated = await apiCall(`complaints/${currentEditingId}/`, 'PATCH', patchData);
@@ -482,14 +739,71 @@
             }
         }
 
-        async function markResolved(id) {
-            if (!confirm('Mark this complaint as Resolved?')) return;
-            const updated = await apiCall(`complaints/${id}/`, 'PATCH', { status: 'Resolved' });
+        let currentResolvingId = null;
+        let selectedFileBase64 = null;
+
+        function openResolutionModal(id) {
+            currentResolvingId = id;
+            document.getElementById('res-summary').value = '';
+            clearFileSelection();
+
+            const notice = document.getElementById('proofRequirementNotice');
+            notice.style.display = mandatoryResolutionProof ? 'block' : 'none';
+
+            document.getElementById('resolutionModal').style.display = 'flex';
+        }
+
+        function closeResolutionModal() {
+            document.getElementById('resolutionModal').style.display = 'none';
+        }
+
+        function handleFileSelect(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                selectedFileBase64 = e.target.result;
+                document.getElementById('file-label').innerText = file.name;
+                document.getElementById('file-preview').src = selectedFileBase64;
+                document.getElementById('file-preview-container').style.display = 'block';
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function clearFileSelection() {
+            selectedFileBase64 = null;
+            document.getElementById('res-file').value = '';
+            document.getElementById('file-label').innerText = 'Choose File or Photo';
+            document.getElementById('file-preview-container').style.display = 'none';
+        }
+
+        async function confirmResolution() {
+            const summary = document.getElementById('res-summary').value.trim();
+            const proof = selectedFileBase64 || summary;
+
+            if (mandatoryResolutionProof && !proof) {
+                alert("Proof of resolution is mandatory. Please provide a description or attach a photo.");
+                return;
+            }
+
+            const payload = {
+                status: 'Resolved',
+                resolution_proof: proof || 'Resolved by Supervisor'
+            };
+
+            const updated = await apiCall(`complaints/${currentResolvingId}/`, 'PATCH', payload);
             if (updated) {
-                const idx = allComplaints.findIndex(c => c.id === id);
+                const idx = allComplaints.findIndex(c => c.id === currentResolvingId);
                 if (idx > -1) allComplaints[idx] = updated;
+                alert("Complaint resolved and moved to Quality Check.");
+                closeResolutionModal();
                 renderComplaints();
             }
+        }
+
+        async function markResolved(id) {
+            openResolutionModal(id);
         }
 
         async function deleteComplaint(id) {
@@ -501,7 +815,7 @@
         }
 
         async function handleRequest(id, action) {
-            const updated = await apiCall(`resources/${id}/`, 'PATCH', { status: action });
+            const updated = await apiCall(`resource-requests/${id}/`, 'PATCH', { status: action });
             if (updated) {
                 const idx = allRequests.findIndex(r => r.id === id);
                 if (idx > -1) allRequests[idx] = updated;
@@ -511,6 +825,53 @@
         }
 
         function closeModal() { document.getElementById('triageModal').style.display = 'none'; }
+
+        function viewComplaintDetails(id) {
+            const c = allComplaints.find(x => x.id === id);
+            if (!c) return;
+            const dateStr = new Date(c.created_at).toLocaleString();
+            document.getElementById('detailsTitle').innerText = 'Complaint Details';
+            document.getElementById('detailsBody').innerHTML = `
+                <p><b>Issue:</b> ${c.title}</p>
+                <p><b>Student:</b> ${c.is_anonymous ? 'Anonymous' : (c.student_name || '—')}</p>
+                <p><b>Category:</b> ${c.category || 'General'} &nbsp;|&nbsp; <b>ETR:</b> ${c.etr_hours || 24} hours</p>
+                <p><b>Location:</b> ${c.room}</p>
+                <p><b>Reported:</b> ${dateStr}</p>
+                <p><b>Status:</b> ${c.status}</p>
+                <p><b>Priority:</b> ${c.priority}</p>
+                <p><b>Description:</b> ${c.description}</p>
+                ${c.assigned_worker_name ? `<p><b>Assigned Worker:</b> ${c.assigned_worker_name}</p>` : ''}
+                ${c.resolution_proof ? `
+                    <div style="margin-top:10px; padding:15px; background:#f0fdf4; border-radius:10px; border:1px solid #bbf7d0;">
+                        <b style="color:#166534; font-size:12px; text-transform:uppercase;">📸 Resolution Proof:</b>
+                        <p style="margin:5px 0 0 0; font-size:14px; color:#1e293b;">${c.resolution_proof}</p>
+                    </div>
+                ` : ''}
+            `;
+            document.getElementById('detailsModal').style.display = 'flex';
+        }
+
+        function viewRequestDetails(id) {
+            const r = allRequests.find(x => x.id === id);
+            if (!r) return;
+            const dateStr = new Date(r.created_at).toLocaleString();
+            document.getElementById('detailsTitle').innerText = 'Resource Request Details';
+            document.getElementById('detailsBody').innerHTML = `
+                <p><b>Item:</b> ${r.item_name}</p>
+                <p><b>Student:</b> ${r.student_name || 'Anonymous'}</p>
+                <p><b>Room:</b> ${r.student || '—'}</p>
+                <p><b>Date:</b> ${dateStr}</p>
+                <p><b>Quantity:</b> ${r.quantity || 1}</p>
+                <p><b>Urgency:</b> ${r.urgency || 'Normal'}</p>
+                <p><b>Description:</b> ${r.description || 'No description provided.'}</p>
+                <p><b>Status:</b> ${r.status}</p>
+            `;
+            document.getElementById('detailsModal').style.display = 'flex';
+        }
+
+        function closeDetailsModal() {
+            document.getElementById('detailsModal').style.display = 'none';
+        }
 
         function toggleAdvancedMode() {
             alert('Advanced Mode: Duplicate scanning enabled.');

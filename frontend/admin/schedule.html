@@ -1,373 +1,845 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 
 <head>
-    <title>Maintenance Schedule | Admin</title>
-    <link rel="stylesheet" href="../static/css/style.css">
-    <script src="../static/js/main.js"></script>
+    <meta charset="UTF-8">
+    <title>Schedules | HostelHub</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <script src="/static/js/main.js"></script>
     <style>
-        .schedule-container {
-            display: grid;
-            grid-template-columns: 1fr 350px;
-            gap: 25px;
-            margin-top: 20px;
-        }
-
-        .schedule-list {
+        /* ── Nav Banner Cards ──────────────────────────── */
+        .nav-banners {
             display: flex;
             flex-direction: column;
-            gap: 15px;
+            gap: 13px;
         }
 
-        .schedule-item {
+        .nav-banner {
             background: #fff;
-            padding: 20px;
-            border-radius: 12px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-            border-left: 6px solid #2b7cff;
+            border-radius: 14px;
+            padding: 20px 26px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
             display: flex;
-            justify-content: space-between;
             align-items: center;
-            transition: all 0.3s ease;
+            justify-content: space-between;
+            cursor: pointer;
+            text-decoration: none;
+            border-left: 5px solid #e2e8f0;
+            transition: all 0.2s ease;
         }
 
-        .schedule-item.missed {
-            border-left-color: #dc3545;
-            background: #fff8f8;
+        .nav-banner:hover {
+            transform: translateX(5px);
+            box-shadow: 0 6px 22px rgba(0, 0, 0, 0.09);
         }
 
-        .schedule-item.done {
-            border-left-color: #28a745;
+        .nav-banner.all {
+            border-left-color: #2b7cff;
+        }
+
+        .nav-banner.upcoming {
+            border-left-color: #f59e0b;
+        }
+
+        .nav-banner.missed {
+            border-left-color: #ef4444;
+        }
+
+        .nav-banner.done {
+            border-left-color: #10b981;
+        }
+
+        .nav-banner.high {
+            border-left-color: #8b5cf6;
+        }
+
+        .banner-icon {
+            width: 46px;
+            height: 46px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 21px;
+            flex-shrink: 0;
+        }
+
+        .icon-all {
+            background: #eff6ff;
+        }
+
+        .icon-upcoming {
+            background: #fffbeb;
+        }
+
+        .icon-missed {
+            background: #fef2f2;
+        }
+
+        .icon-done {
+            background: #ecfdf5;
+        }
+
+        .icon-high {
+            background: #f5f3ff;
+        }
+
+        .banner-title {
+            font-size: 15px;
+            font-weight: 700;
+            color: #1e293b;
+            margin: 0 0 2px;
+        }
+
+        .banner-sub {
+            font-size: 12px;
+            color: #94a3b8;
+            margin: 0;
+        }
+
+        .banner-count {
+            font-size: 24px;
+            font-weight: 800;
+            min-width: 36px;
+            text-align: right;
+        }
+
+        .count-all {
+            color: #2b7cff;
+        }
+
+        .count-upcoming {
+            color: #f59e0b;
+        }
+
+        .count-missed {
+            color: #ef4444;
+        }
+
+        .count-done {
+            color: #10b981;
+        }
+
+        .count-high {
+            color: #8b5cf6;
+        }
+
+        .banner-arrow {
+            font-size: 20px;
+            color: #cbd5e1;
+            transition: 0.18s;
+        }
+
+        .nav-banner:hover .banner-arrow {
+            color: #94a3b8;
+        }
+
+        /* ── Layout ─────────────────────────────────────── */
+        .main-layout {
+            display: grid;
+            grid-template-columns: 1fr 310px;
+            gap: 20px;
+            align-items: start;
+        }
+
+        /* ── Quick Add card ───────── */
+        .quick-add-box {
+            background: linear-gradient(135deg, #2b7cff 0%, #1d5ce0 100%);
+            border-radius: 14px;
+            padding: 20px 22px;
+            color: #fff;
+            margin-bottom: 14px;
+        }
+
+        .quick-add-box h4 {
+            margin: 0 0 4px;
+            font-size: 14px;
+            font-weight: 700;
+        }
+
+        .quick-add-box p {
+            margin: 0 0 12px;
+            font-size: 12px;
             opacity: 0.8;
         }
 
-        .date-badge {
-            background: #e7f3ff;
-            color: #2b7cff;
-            padding: 8px 12px;
+        .quick-add-box button {
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            color: #fff;
+            padding: 7px 16px;
             border-radius: 8px;
-            text-align: center;
-            min-width: 80px;
+            font-size: 13px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: 0.2s;
         }
 
-        .date-badge b {
-            font-size: 18px;
-            display: block;
+        .quick-add-box button:hover {
+            background: rgba(255, 255, 255, 0.35);
         }
 
-        .date-badge span {
-            font-size: 12px;
-            text-transform: uppercase;
-        }
-
+        /* ── Recurring Tasks box ─────────────────────────── */
         .recurring-box {
             background: #fff;
-            padding: 20px;
-            border-radius: 12px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            border-radius: 14px;
+            padding: 18px 22px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        }
+
+        .recurring-box-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 14px;
+        }
+
+        .recurring-box-header h4 {
+            margin: 0;
+            font-size: 14px;
+            font-weight: 700;
+            color: #1e293b;
         }
 
         .recurring-item {
             display: flex;
             align-items: center;
-            gap: 12px;
-            margin-top: 15px;
-            padding-bottom: 15px;
+            gap: 10px;
+            padding: 9px 6px;
             border-bottom: 1px solid #f0f0f0;
+            transition: 0.15s;
         }
 
         .recurring-item:last-child {
             border-bottom: none;
         }
 
+        .recurring-item:hover {
+            background: #f8fafc;
+            border-radius: 8px;
+        }
+
         .icon-circle {
-            width: 40px;
-            height: 40px;
+            width: 34px;
+            height: 34px;
             border-radius: 50%;
-            background: #f0f4f8;
+            background: #f1f5f9;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 20px;
+            font-size: 16px;
+            flex-shrink: 0;
         }
 
-        .notify-btn {
-            background: #dc3545;
-            color: white;
-            border: none;
-            padding: 6px 12px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 12px;
+        .rec-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .rec-name {
             font-weight: 600;
+            font-size: 13px;
+            color: #1e293b;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .rec-freq {
+            font-size: 11px;
+            color: #94a3b8;
+        }
+
+        .rec-actions {
             display: none;
         }
 
-        .notify-btn:disabled {
-            background: #ccc;
-            cursor: not-allowed;
+        /* removed */
+
+        .active-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: #10b981;
+            flex-shrink: 0;
         }
 
-        .item-actions {
-            display: flex;
-            flex-direction: column;
-            align-items: flex-end;
-            gap: 8px;
+        .inactive-dot {
+            background: #cbd5e1;
         }
 
-        .status-pill {
-            padding: 4px 10px;
-            border-radius: 20px;
+        /* edit-mode: rows become clickable */
+        .edit-mode .recurring-item {
+            cursor: pointer;
+        }
+
+        .edit-mode .recurring-item:hover {
+            background: #eff6ff;
+            border-radius: 8px;
+        }
+
+        .edit-mode .recurring-item::after {
+            content: '✏';
+            font-size: 13px;
+            color: #2b7cff;
+            margin-left: auto;
+            padding-left: 6px;
+            flex-shrink: 0;
+        }
+
+        /* Edit toggle button */
+        .edit-toggle-btn {
+            border: 1px solid #e2e8f0;
+            background: #fff;
+            color: #475569;
+            padding: 4px 12px;
+            border-radius: 7px;
             font-size: 12px;
             font-weight: 600;
+            cursor: pointer;
+            transition: 0.15s;
         }
 
-        .status-pill.scheduled {
-            background: #e7f3ff;
+        .edit-toggle-btn.active {
+            background: #eff6ff;
             color: #2b7cff;
+            border-color: #bfdbfe;
         }
 
-        .status-pill.missed {
-            background: #fdecea;
-            color: #dc3545;
+        .edit-toggle-btn:hover {
+            background: #f8fafc;
         }
 
-        .status-pill.done {
-            background: #e6f4ea;
-            color: #28a745;
+        .edit-toggle-btn.active:hover {
+            background: #dbeafe;
+        }
+
+        /* ── Edit Recurring Modal ──────────────────────── */
+        .modal-box {
+            width: 460px !important;
+        }
+
+        .day-checkboxes {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+            margin-top: 6px;
+        }
+
+        .day-cb {
+            display: none;
+        }
+
+        .day-label {
+            padding: 5px 10px;
+            border: 1px solid #e2e8f0;
+            border-radius: 7px;
+            font-size: 12px;
+            font-weight: 600;
+            color: #475569;
+            cursor: pointer;
+            transition: 0.15s;
+            user-select: none;
+        }
+
+        .day-cb:checked+.day-label {
+            background: #2b7cff;
+            color: #fff;
+            border-color: #2b7cff;
         }
     </style>
 </head>
 
 <body>
 
-    <div class="app">
+    <div class="app admin-app">
 
         <!-- SIDEBAR -->
         <div class="sidebar">
             <h2>HostelHub</h2>
             <p class="portal-label">Admin Portal</p>
             <ul>
-                <li onclick="location.href='dashboard.html'">Dashboard</li>
-                <li onclick="location.href='all_complaints.html'">All Complaints</li>
-                <li onclick="location.href='manage_workers.html'">Manage Workers</li>
-                <li onclick="location.href='manage_notices.html'">Manage Notices</li>
+                <li onclick="location.href='/admin/dashboard.html'">Dashboard</li>
+                <li onclick="location.href='/admin/all_complaints.html'">All Complaints</li>
+                <li onclick="location.href='/admin/manage_workers.html'">Manage Workers</li>
+                <li onclick="location.href='/admin/manage_notices.html'">Manage Notices</li>
                 <li class="active">Schedule</li>
-                <li onclick="location.href='settings.html'">Settings</li>
+                <li onclick="location.href='/admin/settings.html'">Settings</li>
             </ul>
-            <div class="sidebar-logout" onclick="logout()">
-                Logout
-            </div>
+            <div class="sidebar-logout" onclick="logout()">Logout</div>
         </div>
 
         <!-- CONTENT -->
         <div class="content">
-            <h2>Maintenance Schedule</h2>
-            <p style="color:#666;">Plan and manage routine hostel maintenance activities</p>
-
-            <div class="schedule-container">
-                <!-- Upcoming Schedules -->
+            <div class="topbar" style="margin-bottom:24px;">
                 <div>
-                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
-                        <h3 style="color:#444;">Upcoming & Active Activities</h3>
-                        <button class="btn" onclick="openModal()">+ Add Schedule</button>
-                    </div>
+                    <h2 style="margin:0;">Maintenance Schedule</h2>
+                    <p style="color:#94a3b8; margin:4px 0 0; font-size:13px;">Plan, assign and track all hostel
+                        maintenance activities</p>
+                </div>
+            </div>
 
-                    <div class="schedule-list" id="scheduleList">
-                        <!-- Dynamic content -->
-                    </div>
+            <div class="main-layout">
+                <!-- LEFT: Nav Banners -->
+                <div class="nav-banners">
+                    <a class="nav-banner all" href="/admin/schedule_list.html?filter=all">
+                        <div style="display:flex;align-items:center;gap:14px;">
+                            <div class="banner-icon icon-all">📋</div>
+                            <div>
+                                <p class="banner-title">All Schedules</p>
+                                <p class="banner-sub">Every maintenance activity this week</p>
+                            </div>
+                        </div>
+                        <div style="display:flex;align-items:center;gap:12px;">
+                            <span class="banner-count count-all" id="cnt-all">—</span>
+                            <span class="banner-arrow">›</span>
+                        </div>
+                    </a>
+
+                    <a class="nav-banner upcoming" href="/admin/schedule_list.html?filter=upcoming">
+                        <div style="display:flex;align-items:center;gap:14px;">
+                            <div class="banner-icon icon-upcoming">🔜</div>
+                            <div>
+                                <p class="banner-title">Upcoming</p>
+                                <p class="banner-sub">Scheduled activities not yet due</p>
+                            </div>
+                        </div>
+                        <div style="display:flex;align-items:center;gap:12px;">
+                            <span class="banner-count count-upcoming" id="cnt-upcoming">—</span>
+                            <span class="banner-arrow">›</span>
+                        </div>
+                    </a>
+
+                    <a class="nav-banner missed" href="/admin/schedule_list.html?filter=missed">
+                        <div style="display:flex;align-items:center;gap:14px;">
+                            <div class="banner-icon icon-missed">⚠️</div>
+                            <div>
+                                <p class="banner-title">Missed</p>
+                                <p class="banner-sub">Past-due activities that were skipped</p>
+                            </div>
+                        </div>
+                        <div style="display:flex;align-items:center;gap:12px;">
+                            <span class="banner-count count-missed" id="cnt-missed">—</span>
+                            <span class="banner-arrow">›</span>
+                        </div>
+                    </a>
+
+                    <a class="nav-banner done" href="/admin/schedule_list.html?filter=done">
+                        <div style="display:flex;align-items:center;gap:14px;">
+                            <div class="banner-icon icon-done">✅</div>
+                            <div>
+                                <p class="banner-title">Completed</p>
+                                <p class="banner-sub">Activities marked as done</p>
+                            </div>
+                        </div>
+                        <div style="display:flex;align-items:center;gap:12px;">
+                            <span class="banner-count count-done" id="cnt-done">—</span>
+                            <span class="banner-arrow">›</span>
+                        </div>
+                    </a>
+
+                    <a class="nav-banner high" href="/admin/schedule_list.html?filter=high">
+                        <div style="display:flex;align-items:center;gap:14px;">
+                            <div class="banner-icon icon-high">🔴</div>
+                            <div>
+                                <p class="banner-title">High Priority</p>
+                                <p class="banner-sub">Critical maintenance tasks</p>
+                            </div>
+                        </div>
+                        <div style="display:flex;align-items:center;gap:12px;">
+                            <span class="banner-count count-high" id="cnt-high">—</span>
+                            <span class="banner-arrow">›</span>
+                        </div>
+                    </a>
                 </div>
 
-                <!-- Recurring Tasks -->
+                <!-- RIGHT: Quick Add + Recurring -->
                 <div>
+                    <div class="quick-add-box">
+                        <h4>+ Add New Activity</h4>
+                        <p>Schedule a one-off maintenance task</p>
+                        <button onclick="location.href='/admin/schedule_list.html?add=1'">Open Scheduler →</button>
+                    </div>
+
                     <div class="recurring-box">
-                        <h3 style="margin-bottom:10px;">Recurring Tasks</h3>
-                        <div class="recurring-item">
-                            <div class="icon-circle">🚰</div>
-                            <div>
-                                <div style="font-weight:500;">Water Tank Cleaning</div>
-                                <small style="color:#777;">Every 15th of month</small>
+                        <div class="recurring-box-header">
+                            <h4>🔁 Recurring Tasks</h4>
+                            <div style="display:flex; gap:8px;">
+                                <button class="edit-toggle-btn" onclick="openRecAdd()">+ New</button>
+                                <button class="edit-toggle-btn" id="editToggleBtn" onclick="toggleEditMode()">Edit</button>
                             </div>
                         </div>
-                        <div class="recurring-item">
-                            <div class="icon-circle">🍳</div>
-                            <div>
-                                <div style="font-weight:500;">Kitchen Deep Clean</div>
-                                <small style="color:#777;">Every Sunday Night</small>
-                            </div>
-                        </div>
-                        <div class="recurring-item">
-                            <div class="icon-circle">♻️</div>
-                            <div>
-                                <div style="font-weight:500;">Food Waste Management</div>
-                                <small style="color:#777;">Daily @ 10 PM</small>
-                            </div>
-                        </div>
-                        <div class="recurring-item">
-                            <div class="icon-circle">🧹</div>
-                            <div>
-                                <div style="font-weight:500;">General Cleaning</div>
-                                <small style="color:#777;">Mon & Thu @ 10 AM</small>
-                            </div>
-                        </div>
-                        <div class="recurring-item">
-                            <div class="icon-circle">🦟</div>
-                            <div>
-                                <div style="font-weight:500;">Pest Control</div>
-                                <small style="color:#777;">1st of every month</small>
-                            </div>
-                        </div>
-                        <div class="recurring-item">
-                            <div class="icon-circle">🚒</div>
-                            <div>
-                                <div style="font-weight:500;">Fire Safety Audit</div>
-                                <small style="color:#777;">Every 3 months</small>
-                            </div>
-                        </div>
-                        <div class="recurring-item">
-                            <div class="icon-circle">📦</div>
-                            <div>
-                                <div style="font-weight:500;">Inventory Restock</div>
-                                <small style="color:#777;">Every 2 weeks</small>
-                            </div>
+                        <div id="recurringList">
+                            <div style="text-align:center;padding:20px;color:#cbd5e1;font-size:13px;">Loading…</div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-
     </div>
 
-    <!-- Modal -->
-    <div id="scheduleModal" class="modal">
+    <!-- ===== EDIT RECURRING MODAL ===== -->
+    <div id="recModal" class="modal">
         <div class="modal-box">
-            <h3>Schedule New activity</h3>
-            <label>Activity Title</label>
-            <input id="sTitle" placeholder="Eg: Kitchen Hood Servicing">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;">
+                <h3 style="margin:0;">Edit Recurring Task</h3>
+                <span onclick="closeRecModal()" style="cursor:pointer;color:#94a3b8;font-size:18px;">✕</span>
+            </div>
 
-            <label>Area / Block</label>
-            <input id="sArea" placeholder="Eg: Main Kitchen">
+            <input type="hidden" id="recId">
 
-            <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
-                <div>
-                    <label>Date</label>
-                    <input type="date" id="sDate">
-                </div>
+            <label>Task Name</label>
+            <input id="recName" placeholder="Task name">
+
+            <label>Area / Location</label>
+            <input id="recArea" placeholder="e.g. Block B, Rooftop">
+
+            <label>Recurrence Period</label>
+            <select id="recType" onchange="updateRecValueUI()">
+                <option value="daily">Daily</option>
+                <option value="weekly">Weekly (pick days)</option>
+                <option value="biweekly">Every 2 Weeks (pick day)</option>
+                <option value="monthly">Monthly (pick day of month)</option>
+                <option value="quarterly">Quarterly (every 3 months)</option>
+            </select>
+
+            <!-- Dynamic recurrence value area -->
+            <div id="recValueArea" style="margin-top:10px;"></div>
+
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:4px;">
                 <div>
                     <label>Time</label>
-                    <input type="time" id="sTime">
+                    <input type="time" id="recTime">
+                </div>
+                <div>
+                    <label>Priority</label>
+                    <select id="recImportance">
+                        <option value="low">🟢 Low</option>
+                        <option value="medium">🟡 Medium</option>
+                        <option value="high">🔴 High</option>
+                    </select>
                 </div>
             </div>
 
-            <label>Importance</label>
-            <select id="sImportance">
-                <option value="low">Low (Routine)</option>
-                <option value="medium">Medium (Important)</option>
-                <option value="high">High (Critical)</option>
-            </select>
+            <div style="display:flex;align-items:center;gap:10px;margin-top:14px;">
+                <label style="margin:0;">Active</label>
+                <input type="checkbox" id="recActive" style="width:auto;margin:0;">
+            </div>
 
-            <div class="modal-actions">
-                <button class="btn-outline" onclick="closeModal()">Cancel</button>
-                <button class="btn" onclick="addSchedule()">Save Schedule</button>
+            <div class="modal-actions" style="margin-top:20px;">
+                <button class="btn-outline" onclick="closeRecModal()">Cancel</button>
+                <button class="btn" onclick="saveRecurring()">Save Changes</button>
             </div>
         </div>
     </div>
 
     <script>
-        // Initial Data for Demo
-        let schedules = JSON.parse(localStorage.getItem('adminSchedules')) || [
-            { id: 1, title: "Water Tank Cleaning", area: "All Blocks", date: "2024-02-15", time: "09:00", importance: "high", isDone: false },
-            { id: 2, title: "Kitchen Gas Leakage Check", area: "Mess Hall", date: "2024-02-16", time: "08:00", importance: "high", isDone: true },
-            { id: 4, title: "Monthly Food Quality Audit", area: "Dining Hall", date: "2024-02-25", time: "11:00", importance: "medium", isDone: false },
-            { id: 5, title: "Mess Staff Hygiene Training", area: "Conference Room", date: "2024-02-28", time: "15:00", importance: "low", isDone: false },
-            { id: 3, title: "Garden Grass Cutting", area: "Common Area", date: "2024-02-10", time: "10:30", importance: "low", isDone: false }
-        ];
+        const DAY_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+        const DAY_FULL = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
-        function renderSchedules() {
-            const list = document.getElementById("scheduleList");
-            list.innerHTML = "";
+        // ── Recurrence helpers ────────────────────────────
+        function matchesRecurrence(task, date) {
+            if (!task.is_active) return false;
+            const type = task.recurrence_type;
+            const val = task.recurrence_value || '';
+            if (type === 'daily') return true;
+            if (type === 'weekly' || type === 'biweekly') {
+                const days = val.split(',').map(n => parseInt(n.trim())).filter(n => !isNaN(n));
+                if (!days.includes(date.getDay())) return false;
+                if (type === 'biweekly') {
+                    // Use a fixed epoch Monday to count weeks
+                    const epoch = new Date('2024-01-01');
+                    const weekNum = Math.floor((date - epoch) / (7 * 24 * 60 * 60 * 1000));
+                    return weekNum % 2 === 0;
+                }
+                return true;
+            }
+            if (type === 'monthly') return date.getDate() === parseInt(val || '1');
+            if (type === 'quarterly') {
+                return [0, 3, 6, 9].includes(date.getMonth()) && date.getDate() === 1;
+            }
+            return false;
+        }
+
+        function getNextOccurrence(task) {
             const now = new Date();
-
-            schedules.forEach(s => {
-                const sDateTime = new Date(`${s.date}T${s.time}`);
-                const isPast = sDateTime < now;
-                let status = s.isDone ? "done" : (isPast ? "missed" : "scheduled");
-
-                const dateObj = new Date(s.date);
-                const day = dateObj.getDate();
-                const month = dateObj.toLocaleString('default', { month: 'short' }).toUpperCase();
-
-                const itemClass = status === "missed" ? "missed" : (status === "done" ? "done" : "");
-                const statusLabel = status.charAt(0).toUpperCase() + status.slice(1);
-
-                const html = `
-                    <div class="schedule-item ${itemClass}">
-                        <div style="display:flex; gap:15px; align-items:center;">
-                            <div class="date-badge" style="${status === 'missed' ? 'background:#fdecea; color:#dc3545;' : (status === 'done' ? 'background:#e6f4ea; color:#28a745;' : '')}">
-                                <b>${day}</b>
-                                <span>${month}</span>
-                            </div>
-                            <div>
-                                <div style="font-weight:600; font-size:16px;">${s.title}</div>
-                                <div style="font-size:13px; color:#666;">${s.area} · ${s.time}</div>
-                            </div>
-                        </div>
-                        <div class="item-actions">
-                            <span class="status-pill ${status}">${statusLabel}</span>
-                            ${status === 'missed' ? `<button class="notify-btn" style="display:block" onclick="notifySupervisor('${s.title}')">Notify Supervisor</button>` : ''}
-                            ${status === 'scheduled' ? `<button class="btn-outline" style="font-size:11px; padding:4px 8px;" onclick="markAsDone(${s.id})">Mark Done</button>` : ''}
-                        </div>
-                    </div>
-                `;
-                list.insertAdjacentHTML('beforeend', html);
-            });
-
-            localStorage.setItem('adminSchedules', JSON.stringify(schedules));
+            for (let i = 0; i <= 120; i++) {
+                const d = new Date(now);
+                d.setDate(now.getDate() + i);
+                d.setHours(0, 0, 0, 0);
+                if (matchesRecurrence(task, d)) return d;
+            }
+            return null;
         }
 
-        function openModal() { document.getElementById("scheduleModal").style.display = "flex"; }
-        function closeModal() { document.getElementById("scheduleModal").style.display = "none"; }
-
-        function addSchedule() {
-            const title = sTitle.value;
-            const area = sArea.value;
-            const date = sDate.value;
-            const time = sTime.value;
-            const importance = sImportance.value;
-
-            if (!title || !date) { alert("Please fill Title and Date"); return; }
-
-            const newSchedule = {
-                id: Date.now(),
-                title,
-                area,
-                date,
-                time,
-                importance,
-                isDone: false
-            };
-
-            schedules.unshift(newSchedule);
-            renderSchedules();
-            closeModal();
-            sTitle.value = ""; sArea.value = ""; sDate.value = ""; sTime.value = "";
-        }
-
-        function notifySupervisor(task) {
-            alert(`📢 Notification sent to Supervisor regarding missed task: "${task}"`);
-        }
-
-        function markAsDone(id) {
-            const item = schedules.find(x => x.id === id);
-            if (item) {
-                item.isDone = true;
-                renderSchedules();
+        function recurrenceLabel(task) {
+            const val = task.recurrence_value || '';
+            switch (task.recurrence_type) {
+                case 'daily': return 'Every day';
+                case 'weekly': {
+                    const days = val.split(',').map(n => DAY_NAMES[parseInt(n.trim())]).filter(Boolean);
+                    return 'Every ' + (days.join(' & ') || '—');
+                }
+                case 'biweekly': {
+                    const days = val.split(',').map(n => DAY_NAMES[parseInt(n.trim())]).filter(Boolean);
+                    return 'Every 2 wks · ' + (days.join(' & ') || '—');
+                }
+                case 'monthly': return `${ordinal(parseInt(val) || 1)} of every month`;
+                case 'quarterly': return 'Every 3 months';
+                default: return task.recurrence_type;
             }
         }
 
-        // Run render on load
-        window.onload = renderSchedules;
+        function ordinal(n) {
+            const s = ['th', 'st', 'nd', 'rd'], v = n % 100;
+            return n + (s[(v - 20) % 10] || s[v] || s[0]);
+        }
 
+        function fmtDate(d) {
+            if (!d) return '—';
+            return d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', weekday: 'short' });
+        }
+
+        // ── Compute this-week's recurring occurrences count ─
+        function thisWeekOccurrenceCount(task) {
+            if (!task.is_active) return 0;
+            const now = new Date();
+            const wd = now.getDay();
+            const daysFromMon = wd === 0 ? 6 : wd - 1;
+            const monday = new Date(now);
+            monday.setDate(now.getDate() - daysFromMon);
+            monday.setHours(0, 0, 0, 0);
+            let count = 0;
+            for (let i = 0; i < 7; i++) {
+                const d = new Date(monday);
+                d.setDate(monday.getDate() + i);
+                if (matchesRecurrence(task, d)) count++;
+            }
+            return count;
+        }
+
+        // ── Load counts for banners ───────────────────────
+        async function loadCounts() {
+            const [schData, recData] = await Promise.all([
+                apiCall('schedules/', 'GET'),
+                apiCall('recurring-tasks/', 'GET')
+            ]);
+
+            const schedules = schData || [];
+            const recurring = recData || [];
+
+            // Regular schedule statuses
+            function getStatus(s) {
+                const now = new Date();
+                const dt = new Date(`${s.date}T${s.time || '00:00'}`);
+                if (s.is_done) return 'done';
+                if (dt < now) return 'missed';
+                return 'upcoming';
+            }
+
+            const now = new Date();
+            now.setHours(0,0,0,0);
+            const nextWeek = new Date(now);
+            nextWeek.setDate(now.getDate() + 7);
+
+            // Filter all entries into the "active" 7-day window
+            const activeEntries = schedules.filter(s => {
+                const itemDate = new Date(s.date + 'T00:00:00');
+                const isMissed = getStatus(s) === 'missed';
+                return (itemDate >= now && itemDate <= nextWeek) || isMissed;
+            }).map(s => ({
+                status: getStatus(s),
+                importance: s.importance
+            }));
+
+            const total = activeEntries.length;
+            const upcoming = activeEntries.filter(e => e.status === 'upcoming').length;
+            const missed = activeEntries.filter(e => e.status === 'missed').length;
+            const done = activeEntries.filter(e => e.status === 'done').length;
+            const high = activeEntries.filter(e => e.importance === 'high').length;
+
+            document.getElementById('cnt-all').innerText = total;
+            document.getElementById('cnt-upcoming').innerText = upcoming;
+            document.getElementById('cnt-missed').innerText = missed;
+            document.getElementById('cnt-done').innerText = done;
+            document.getElementById('cnt-high').innerText = high;
+
+            renderRecurringList(recurring);
+        }
+
+        // ── Render recurring tasks panel ──────────────────
+        let editMode = false;
+
+        function toggleEditMode() {
+            editMode = !editMode;
+            const btn = document.getElementById('editToggleBtn');
+            const box = document.getElementById('recurringList');
+            btn.classList.toggle('active', editMode);
+            btn.innerText = editMode ? 'Done' : 'Edit';
+            box.classList.toggle('edit-mode', editMode);
+        }
+
+        // emoji icons mapped by task name keywords
+        function taskIcon(name) {
+            const n = name.toLowerCase();
+            if (n.includes('water') || n.includes('tank')) return '🚰';
+            if (n.includes('kitchen')) return '🍳';
+            if (n.includes('food') || n.includes('waste')) return '♻️';
+            if (n.includes('clean')) return '🧹';
+            if (n.includes('pest')) return '🦥';
+            if (n.includes('fire') || n.includes('safety')) return '🚒';
+            if (n.includes('inventory') || n.includes('stock')) return '📦';
+            return '🔧';
+        }
+
+        function renderRecurringList(tasks) {
+            const el = document.getElementById('recurringList');
+            if (!tasks.length) {
+                el.innerHTML = '<div style="text-align:center;padding:20px;color:#cbd5e1;font-size:13px;">No recurring tasks.</div>';
+                return;
+            }
+            el.innerHTML = tasks.map(task => {
+                const freq = recurrenceLabel(task);
+                const next = getNextOccurrence(task);
+                const nextStr = next ? fmtDate(next) : '';
+                const icon = taskIcon(task.name);
+                const opacity = task.is_active ? '' : 'opacity:0.45;';
+                return `
+                <div class="recurring-item" style="${opacity}"
+                     onclick="if(editMode) openRecEdit(${task.id})">
+                    <div class="icon-circle">${icon}</div>
+                    <div class="rec-info">
+                        <div class="rec-name">${task.name}</div>
+                        <div class="rec-freq">${freq}${nextStr ? ' · ' + nextStr : ''}</div>
+                    </div>
+                    ${editMode ? `
+                        <button onclick="event.stopPropagation(); deleteRecurring(${task.id})" 
+                                style="background:none; border:none; cursor:pointer; font-size:14px; padding:4px;">🗑️</button>
+                    ` : ''}
+                </div>`;
+            }).join('');
+        }
+
+        // ── Edit modal ────────────────────────────────────
+        let cachedTasks = [];
+
+        async function openRecAdd() {
+            document.getElementById('recId').value = '';
+            document.getElementById('recName').value = '';
+            document.getElementById('recArea').value = '';
+            document.getElementById('recType').value = 'weekly';
+            document.getElementById('recTime').value = '09:00';
+            document.getElementById('recImportance').value = 'low';
+            document.getElementById('recActive').checked = true;
+            updateRecValueUI('1'); // Monday default
+            document.getElementById('recModal').style.display = 'flex';
+        }
+
+        async function openRecEdit(id) {
+            if (!cachedTasks.length) {
+                const data = await apiCall('recurring-tasks/', 'GET');
+                if (data) cachedTasks = data;
+            }
+            const task = cachedTasks.find(t => t.id === id);
+            if (!task) return;
+
+            document.getElementById('recId').value = id;
+            document.getElementById('recName').value = task.name;
+            document.getElementById('recArea').value = task.area || '';
+            document.getElementById('recType').value = task.recurrence_type;
+            document.getElementById('recTime').value = task.time ? task.time.substring(0, 5) : '';
+            document.getElementById('recImportance').value = task.importance || 'low';
+            document.getElementById('recActive').checked = task.is_active;
+
+            updateRecValueUI(task.recurrence_value || '');
+            document.getElementById('recModal').style.display = 'flex';
+        }
+
+        function closeRecModal() {
+            document.getElementById('recModal').style.display = 'none';
+        }
+
+        function updateRecValueUI(preselect) {
+            const type = document.getElementById('recType').value;
+            const area = document.getElementById('recValueArea');
+            const val = preselect !== undefined ? preselect : getCurrentRecValue();
+
+            if (type === 'daily' || type === 'quarterly') {
+                area.innerHTML = '';
+                return;
+            }
+            if (type === 'weekly' || type === 'biweekly') {
+                const selectedDays = val.split(',').map(n => parseInt(n.trim())).filter(n => !isNaN(n));
+                area.innerHTML = `
+                    <label>Days of week</label>
+                    <div class="day-checkboxes">
+                        ${DAY_NAMES.map((d, i) => `
+                            <input type="checkbox" class="day-cb" id="dc${i}" value="${i}" ${selectedDays.includes(i) ? 'checked' : ''}>
+                            <label class="day-label" for="dc${i}">${d}</label>
+                        `).join('')}
+                    </div>`;
+                return;
+            }
+            if (type === 'monthly') {
+                area.innerHTML = `
+                    <label>Day of month (1–28)</label>
+                    <input type="number" id="monthDay" min="1" max="28" value="${parseInt(val) || 1}"
+                        style="width:100%;padding:8px;border:1px solid #e2e8f0;border-radius:8px;font-size:13px;box-sizing:border-box;">`;
+            }
+        }
+
+        function getCurrentRecValue() {
+            const type = document.getElementById('recType').value;
+            if (type === 'daily' || type === 'quarterly') return '';
+            if (type === 'weekly' || type === 'biweekly') {
+                return Array.from(document.querySelectorAll('.day-cb:checked')).map(cb => cb.value).join(',');
+            }
+            if (type === 'monthly') {
+                const el = document.getElementById('monthDay');
+                return el ? el.value : '1';
+            }
+            return '';
+        }
+
+        async function saveRecurring() {
+            const id = document.getElementById('recId').value;
+            const payload = {
+                name: document.getElementById('recName').value.trim(),
+                area: document.getElementById('recArea').value.trim(),
+                recurrence_type: document.getElementById('recType').value,
+                recurrence_value: getCurrentRecValue(),
+                time: document.getElementById('recTime').value || null,
+                importance: document.getElementById('recImportance').value,
+                is_active: document.getElementById('recActive').checked,
+            };
+            if (!payload.name) { alert('Task name is required.'); return; }
+            
+            const r = id
+                ? await apiCall(`recurring-tasks/${id}/`, 'PATCH', payload)
+                : await apiCall('recurring-tasks/', 'POST', payload);
+
+            if (r) {
+                cachedTasks = [];
+                closeRecModal();
+                loadCounts();
+            } else {
+                alert('Save failed. Please check your inputs.');
+            }
+        }
+
+        async function deleteRecurring(id) {
+            if (!confirm('Delete this recurring task? All future auto-generated schedules for this task may remain but no new ones will be created.')) return;
+            const r = await apiCall(`recurring-tasks/${id}/`, 'DELETE');
+            if (r !== null) {
+                cachedTasks = [];
+                loadCounts();
+            }
+        }
+
+        window.onload = async () => {
+            await loadCounts();
+            syncSidebarSettings();
+        };
     </script>
 
 </body>

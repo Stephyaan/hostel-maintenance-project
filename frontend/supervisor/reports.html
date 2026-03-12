@@ -2,9 +2,10 @@
 <html lang="en">
 
 <head>
-    <title>Reports & Export | Supervisor</title>
-    <link rel="stylesheet" href="../static/css/style.css">
-    <script src="../static/js/main.js"></script>
+    <meta charset="UTF-8">
+    <title>Reports & Analytics | Supervisor</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <script src="/static/js/main.js"></script>
     <style>
         .report-section {
             background: #fff;
@@ -31,35 +32,6 @@
             gap: 10px;
         }
 
-        .kpi-grid {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 20px;
-            margin-bottom: 30px;
-        }
-
-        .kpi-card {
-            background: #f8fafc;
-            padding: 20px;
-            border-radius: 10px;
-            border-left: 4px solid var(--primary);
-        }
-
-        .kpi-value {
-            font-size: 28px;
-            font-weight: 700;
-            color: #0f172a;
-            margin-bottom: 4px;
-        }
-
-        .kpi-label {
-            font-size: 13px;
-            color: #64748b;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        /* Interactive Dashboard Grid */
         /* System Health Panel */
         .status-panel {
             background: #1e293b;
@@ -67,20 +39,20 @@
             padding: 24px;
             border-radius: 12px;
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-            margin-bottom: 30px;
+            margin-bottom: 24px;
         }
 
         .status-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 40px;
-            margin-top: 25px;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 30px;
+            margin-top: 20px;
         }
 
         .status-item {
             display: flex;
             flex-direction: column;
-            gap: 12px;
+            gap: 10px;
         }
 
         .status-header {
@@ -90,20 +62,20 @@
         }
 
         .status-label {
-            font-size: 14px;
+            font-size: 13px;
             color: #94a3b8;
             font-weight: 500;
         }
 
         .status-value {
-            font-size: 24px;
+            font-size: 20px;
             font-weight: 700;
             color: white;
         }
 
         .status-bar-bg {
             background: rgba(255, 255, 255, 0.1);
-            height: 8px;
+            height: 6px;
             border-radius: 4px;
             overflow: hidden;
         }
@@ -114,99 +86,347 @@
             transition: width 1s ease-in-out;
         }
 
-        .export-options {
+        /* Reports Grid */
+        .reports-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 20px;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
         }
 
-        .export-card {
-            border: 1px solid #e2e8f0;
-            border-radius: 10px;
-            padding: 20px;
-            transition: 0.2s;
-            cursor: pointer;
+        .reports-grid-full {
+            grid-column: 1 / -1;
+        }
+
+        /* Leaderboard */
+        .leaderboard-item {
             display: flex;
-            flex-direction: column;
-            justify-content: space-between;
+            align-items: center;
+            gap: 14px;
+            padding: 12px 0;
+            border-bottom: 1px solid #f1f5f9;
         }
 
-        .export-card:hover {
-            border-color: var(--primary);
-            background: #f0f9ff;
+        .leaderboard-item:last-child {
+            border-bottom: none;
         }
 
-        .export-card h4 {
-            margin: 0 0 8px 0;
-            color: #334155;
-        }
-
-        .export-card p {
-            font-size: 13px;
-            color: #64748b;
-            margin: 0 0 15px 0;
-            line-height: 1.4;
-        }
-
-        .btn-download {
-            background: var(--slate-700);
-            color: white;
-            border: none;
-            padding: 10px;
-            border-radius: 6px;
-            width: 100%;
-            cursor: pointer;
-            font-size: 13px;
-            font-weight: 500;
-            transition: 0.2s;
+        .lb-rank {
+            width: 30px;
+            height: 30px;
+            border-radius: 8px;
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 8px;
+            font-weight: 800;
+            font-size: 13px;
+            flex-shrink: 0;
         }
 
-        .btn-download:hover {
-            background: var(--primary);
+        .lb-rank.gold {
+            background: #fef3c7;
+            color: #92400e;
         }
 
-        /* Recent Activity Table */
-        .activity-table {
+        .lb-rank.silver {
+            background: #f1f5f9;
+            color: #475569;
+        }
+
+        .lb-rank.bronze {
+            background: #fed7aa;
+            color: #9a3412;
+        }
+
+        .lb-rank.normal {
+            background: #f8fafc;
+            color: #94a3b8;
+        }
+
+        .lb-info {
+            flex: 1;
+        }
+
+        .lb-name {
+            font-weight: 600;
+            font-size: 14px;
+            color: #1e293b;
+        }
+
+        .lb-skill {
+            font-size: 11px;
+            color: #94a3b8;
+        }
+
+        .lb-stat {
+            text-align: right;
+        }
+
+        .lb-count {
+            font-weight: 700;
+            font-size: 16px;
+            color: #2b7cff;
+        }
+
+        .lb-label {
+            font-size: 10px;
+            color: #94a3b8;
+            text-transform: uppercase;
+        }
+
+        /* Priority Bars */
+        .priority-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 14px;
+        }
+
+        .priority-row:last-child {
+            margin-bottom: 0;
+        }
+
+        .priority-label {
+            width: 70px;
+            font-size: 13px;
+            font-weight: 600;
+            color: #475569;
+        }
+
+        .priority-bar-bg {
+            flex: 1;
+            background: #f1f5f9;
+            height: 24px;
+            border-radius: 6px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .priority-bar-fill {
+            height: 100%;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            padding-left: 10px;
+            font-size: 11px;
+            font-weight: 700;
+            color: white;
+            min-width: 30px;
+            transition: width 0.8s ease;
+        }
+
+        .priority-count {
+            font-size: 13px;
+            font-weight: 700;
+            color: #1e293b;
+            width: 35px;
+            text-align: right;
+        }
+
+        /* Resolution Timeline */
+        .resolution-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 0;
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        .resolution-row:last-child {
+            border-bottom: none;
+        }
+
+        .res-cat {
+            width: 100px;
+            font-size: 13px;
+            font-weight: 600;
+            color: #475569;
+        }
+
+        .res-bar-bg {
+            flex: 1;
+            background: #f1f5f9;
+            height: 8px;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .res-bar-fill {
+            height: 100%;
+            border-radius: 4px;
+            transition: width 0.8s ease;
+        }
+
+        .res-value {
+            font-size: 13px;
+            font-weight: 700;
+            color: #2b7cff;
+            width: 70px;
+            text-align: right;
+        }
+
+        /* Complaint Table */
+        .complaint-table {
             width: 100%;
             border-collapse: collapse;
-            font-size: 14px;
+            font-size: 13px;
         }
 
-        .activity-table th {
+        .complaint-table th {
             text-align: left;
-            padding: 12px;
+            padding: 10px 12px;
             background: #f8fafc;
             color: #64748b;
             font-weight: 600;
             border-bottom: 2px solid #e2e8f0;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
 
-        .activity-table td {
-            padding: 12px;
+        .complaint-table td {
+            padding: 10px 12px;
             border-bottom: 1px solid #f1f5f9;
             color: #334155;
+        }
+
+        .complaint-table tr:hover {
+            background: #fafbfc;
+        }
+
+        .status-pill {
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+            display: inline-block;
+        }
+
+        .status-pill.pending {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .status-pill.progress {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+
+        .status-pill.resolved {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .status-pill.awaiting {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .priority-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 6px;
+        }
+
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.5);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal-box {
+            background: #fff;
+            width: 600px;
+            max-height: 80vh;
+            border-radius: 12px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        }
+
+        .modal-header {
+            padding: 20px;
+            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-body {
+            overflow-y: auto;
+            flex: 1;
+        }
+
+        /* Long Button */
+        .long-button {
+            background: #fff;
+            padding: 24px 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border-left: 6px solid #2b7cff;
+            margin-bottom: 24px;
+            width: 100%;
+            border-top: none;
+            border-right: none;
+            border-bottom: none;
+            text-decoration: none;
+            color: inherit;
+        }
+
+        .long-button:hover {
+            transform: translateX(8px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+            background: #fafafa;
+        }
+
+        .long-button h3 {
+            margin: 0;
+            color: #1e293b;
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .icon-direct {
+            font-size: 24px;
+            color: #2b7cff;
+            font-weight: bold;
+            transition: 0.3s;
+        }
+
+        .long-button:hover .icon-direct {
+            transform: scale(1.2);
         }
     </style>
 </head>
 
 <body>
 
-    <div class="app">
+    <div class="app supervisor-app">
 
         <!-- Sidebar -->
         <div class="sidebar">
             <h2>HostelHub</h2>
             <p style="color:#777;font-size:14px;">Supervisor Portal</p>
             <ul>
-                <li onclick="location.href='dashboard.html'">Dashboard</li>
-                <li onclick="location.href='complaints.html'">Lifecycle Manager</li>
-                <li onclick="location.href='workers.html'">Manage Workers</li>
-                <li onclick="location.href='notices.html'">Notices</li>
-                <li class="active">Reports</li>
+                <li onclick="location.href='/supervisor/dashboard.html'">Dashboard</li>
+                <li onclick="location.href='/supervisor/complaints.html'">Lifecycle Manager</li>
+                <li onclick="location.href='/supervisor/workers.html'">Manage Workers</li>
+                <li onclick="location.href='/supervisor/notices.html'">Notices</li>
+                <li class="active" onclick="location.href='/supervisor/reports.html'">Reports</li>
             </ul>
             <div class="sidebar-logout" onclick="logout()">
                 Logout
@@ -214,233 +434,277 @@
         </div>
 
         <!-- Content -->
-        <div class="content">
+        <div class="content" id="mainContent" style="display: none;">
             <div class="topbar">
                 <div>
-                    <h2>Data & Reports</h2>
-                    <p style="color:#666;">Export maintenance logs and performance summaries</p>
+                    <h2>Reports & Analytics</h2>
+                    <p style="color:#666;">Performance insights from your maintenance operations</p>
                 </div>
+                <span style="font-size:12px; color:#94a3b8; font-weight:600;" id="reportDate"></span>
             </div>
 
-            <!-- Interactive Dashboard -->
-            <!-- Live Status Overview -->
+            <!-- System Health Panel -->
             <div class="status-panel">
                 <div style="display:flex; justify-content:space-between; align-items:center;">
-                    <h3 style="margin:0; font-size:18px;">❤️ System Health</h3>
-                    <div style="font-size:12px; color:#94a3b8;">Real-time Operational Metrics</div>
+                    <h3 style="margin:0; font-size:16px;">❤️ System Health</h3>
+                    <div style="font-size:11px; color:#94a3b8;">Live Metrics</div>
                 </div>
 
                 <div class="status-grid">
-                    <!-- Pending Tasks -->
+                    <div class="status-item">
+                        <div class="status-header">
+                            <span class="status-label">Resolution Rate</span>
+                            <span class="status-value" id="healthResolve" style="font-size:18px;">—</span>
+                        </div>
+                        <div class="status-bar-bg">
+                            <div class="status-bar-fill" id="resolveBar" style="width: 0%; background: #10b981;"></div>
+                        </div>
+                    </div>
+
                     <div class="status-item">
                         <div class="status-header">
                             <span class="status-label">Pending Requests</span>
-                            <span class="status-value" id="pendingCount" style="font-size:18px;">Loading...</span>
+                            <span class="status-value" id="healthPending" style="font-size:18px;">—</span>
                         </div>
                         <div class="status-bar-bg">
                             <div class="status-bar-fill" id="pendingBar" style="width: 0%; background: #f59e0b;"></div>
                         </div>
-                        <div style="font-size:12px; color:#64748b;">Awaiting action</div>
                     </div>
 
-                    <!-- Workers -->
                     <div class="status-item">
                         <div class="status-header">
-                            <span class="status-label">Active Workforce</span>
-                            <span class="status-value" id="workerCount" style="font-size:18px;">Loading...</span>
+                            <span class="status-label">Workforce Available</span>
+                            <span class="status-value" id="healthWorkers" style="font-size:18px;">—</span>
                         </div>
                         <div class="status-bar-bg">
                             <div class="status-bar-fill" id="workerBar" style="width: 0%; background: #3b82f6;"></div>
                         </div>
-                        <div style="font-size:12px; color:#64748b;">Based on current shifts</div>
+                    </div>
+
+                    <div class="status-item">
+                        <div class="status-header">
+                            <span class="status-label">Avg. Feedback</span>
+                            <span class="status-value" id="healthFeedback" style="font-size:18px;">—</span>
+                        </div>
+                        <div class="status-bar-bg">
+                            <div class="status-bar-fill" id="feedbackBar" style="width: 0%; background: #8b5cf6;"></div>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Export Section -->
-            <div class="report-section">
-                <div class="section-header">
-                    <h3>📂 Data Export Center</h3>
+            <div class="reports-grid">
+
+                <!-- SLA Breach Tracker Card -->
+                <button class="long-button" onclick="location.href='/supervisor/sla_tracker.html'">
+                    <h3>🚨 SLA Breach Tracker</h3>
+                    <div style="display: flex; align-items: center; gap: 15px;">
+                        <span style="font-size:14px; color:#ef4444; font-weight:700;" id="slaBreachCount">— overdue</span>
+                        <span class="icon-direct">↗</span>
+                    </div>
+                </button>
+
+                <!-- Workload Balancer Card -->
+                <button class="long-button" onclick="location.href='/supervisor/workload_balancer.html'">
+                    <h3>⚖️ Workload Balancer</h3>
+                    <div style="display: flex; align-items: center; gap: 15px;">
+                        <span style="font-size:14px; color:#94a3b8; font-weight:600;" id="activeWorkerCount">— active</span>
+                        <span class="icon-direct">↗</span>
+                    </div>
+                </button>
+
+                <!-- Resource Demand Forecast Card -->
+                <button class="long-button" onclick="location.href='/supervisor/resource_forecast.html'">
+                    <h3>📦 Resource Demand Forecast</h3>
+                    <div style="display: flex; align-items: center; gap: 15px;">
+                        <span style="font-size:14px; color:#94a3b8; font-weight:600;" id="resourceRequestCount">— items</span>
+                        <span class="icon-direct">↗</span>
+                    </div>
+                </button>
+
+                <!-- Complaint Register Card -->
+                <button class="long-button" onclick="location.href='/supervisor/all_complaints.html'">
+                    <h3>📋 Complaint Register</h3>
+                    <div style="display: flex; align-items: center; gap: 15px;">
+                        <span style="font-size:14px; color:#94a3b8; font-weight:600;" id="tableCount">— items</span>
+                        <span class="icon-direct">↗</span>
+                    </div>
+                </button>
+
+                <!-- Resolution Time by Category -->
+                <div class="report-section reports-grid-full">
+                    <div class="section-header">
+                        <h3>⏱️ Avg. Resolution Time by Category</h3>
+                        <span style="font-size:11px; color:#94a3b8;">Based on resolved complaints</span>
+                    </div>
+                    <div id="resolutionTimeline">
+                        <p style="color:#94a3b8; font-style:italic; text-align:center;">Loading...</p>
+                    </div>
                 </div>
 
-                <div class="export-options">
-                    <!-- Daily Summary -->
-                    <div class="export-card">
-                        <div>
-                            <h4>Daily Incident Report</h4>
-                            <p>Detailed log of all complaints received, assigned, and resolved today.</p>
-                        </div>
-                        <button class="btn-download" onclick="exportData('daily')">
-                            📥 Download CSV
-                        </button>
-                    </div>
-
-                    <!-- Worker Performance -->
-                    <div class="export-card">
-                        <div>
-                            <h4>Staff Performance Sheet</h4>
-                            <p>Efficiency metrics and task completion rates for all workers.</p>
-                        </div>
-                        <button class="btn-download" onclick="exportData('workers')">
-                            📊 Download Excel
-                        </button>
-                    </div>
-
-                    <!-- Monthly Maintenance -->
-                    <div class="export-card">
-                        <div>
-                            <h4>Monthly Maintenance Log</h4>
-                            <p>Comprehensive archive of all maintenance activities for the current month.</p>
-                        </div>
-                        <button class="btn-download" onclick="exportData('monthly')">
-                            📑 Download PDF
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Recent Exports Log -->
-            <div class="report-section">
-                <div class="section-header">
-                    <h3>🕒 Recent Export Activity</h3>
-                </div>
-                <table class="activity-table">
-                    <thead>
-                        <tr>
-                            <th>Report Type</th>
-                            <th>Generated By</th>
-                            <th>Date & Time</th>
-                            <th>Status</th>
-                        </tr>
-                    </thead>
-                    <tbody id="exportLog">
-                        <tr>
-                            <td>Daily Incident Report</td>
-                            <td>Supervisor</td>
-                            <td>Today, 10:30 AM</td>
-                            <td><span style="color:var(--success)">Completed</span></td>
-                        </tr>
-                        <tr>
-                            <td>Staff Performance Sheet</td>
-                            <td>Supervisor</td>
-                            <td>Yesterday, 4:15 PM</td>
-                            <td><span style="color:var(--success)">Completed</span></td>
-                        </tr>
-                        <tr>
-                            <td>Monthly Maintenance Log</td>
-                            <td>Supervisor</td>
-                            <td>Feb 14, 09:00 AM</td>
-                            <td><span style="color:var(--success)">Completed</span></td>
-                        </tr>
-                    </tbody>
-                </table>
             </div>
 
         </div>
+
+
+
+        <!-- Access Denied Message -->
+        <div class="content" id="accessDeniedContent"
+            style="display: none; justify-content: center; align-items: center; height: 100vh;">
+            <div
+                style="text-align: center; background: white; padding: 40px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05);">
+                <div style="font-size: 48px; margin-bottom: 20px;">🔒</div>
+                <h2 style="color: #1e293b; margin-bottom: 10px;">Access Restricted</h2>
+                <p style="color: #64748b; font-size: 15px;">The administrator has currently disabled access to
+                    Performance Reports.<br>Please contact system administration if you require access.</p>
+            </div>
+        </div>
+
     </div>
 
     <script>
-        // --- Data Initialization ---
-        if (!localStorage.getItem('exportHistory')) {
-            const initialHistory = [
-                { type: 'Daily Incident Report', user: 'Supervisor', date: 'Today, 10:30 AM' },
-                { type: 'Staff Performance Sheet', user: 'Supervisor', date: 'Yesterday, 4:15 PM' },
-                { type: 'Monthly Maintenance Log', user: 'Supervisor', date: 'Feb 14, 09:00 AM' }
-            ];
-            localStorage.setItem('exportHistory', JSON.stringify(initialHistory));
-        }
+        window.onload = async function () {
+            // Check settings access
+            const settings = await apiCall('settings/', 'GET');
+            let hasAccess = true;
+            if (settings) {
+                const accessSetting = settings.find(s => s.key === 'performance_reports_access');
+                if (accessSetting && accessSetting.value === false) {
+                    hasAccess = false;
+                }
+            }
 
-        // --- Export Logic ---
-        function loadExportHistory() {
-            const history = JSON.parse(localStorage.getItem('exportHistory') || '[]');
-            const logBody = document.getElementById('exportLog');
-
-            if (history.length === 0) {
-                logBody.innerHTML = '<tr><td colspan="4" style="text-align:center; color:#cbd5e1; padding:20px;">No exports generated yet</td></tr>';
+            if (!hasAccess) {
+                document.getElementById('accessDeniedContent').style.display = 'flex';
+                document.getElementById('mainContent').style.display = 'none';
+                syncSidebarSettings();
+                return;
             } else {
-                logBody.innerHTML = history.map(h => `
-                    <tr>
-                        <td>${h.type}</td>
-                        <td>${h.user}</td>
-                        <td>${h.date}</td>
-                        <td><span style="color:var(--success)">Completed</span></td>
-                    </tr>
-                `).join('');
-            }
-        }
-
-        function exportData(type) {
-            let reportName = "";
-            if (type === 'daily') reportName = "Daily Incident Report";
-            if (type === 'workers') reportName = "Staff Performance Sheet";
-            if (type === 'monthly') reportName = "Monthly Maintenance Log";
-
-            // Simulate file download
-            alert(`Generating ${reportName}... \nDownload will start shortly.`);
-
-            // Save to history
-            const newEntry = {
-                type: reportName,
-                user: 'Supervisor',
-                date: new Date().toLocaleString()
-            };
-
-            const history = JSON.parse(localStorage.getItem('exportHistory') || '[]');
-            history.unshift(newEntry);
-            localStorage.setItem('exportHistory', JSON.stringify(history));
-
-            loadExportHistory();
-        }
-
-
-        // --- System Health Logic ---
-        function updateSystemHealth() {
-            // 1. Worker Availability (From 'activeWorkers' localstorage)
-            const workers = JSON.parse(localStorage.getItem('activeWorkers') || '[]');
-            const totalWorkers = workers.length > 0 ? workers.length : 5;
-            const activeWorkers = workers.length > 0 ? workers.filter(w => w.status !== 'On Leave').length : 3;
-            const workerPercentage = Math.round((activeWorkers / totalWorkers) * 100);
-
-            const workerCountEl = document.getElementById('workerCount');
-            const workerBarEl = document.getElementById('workerBar');
-
-            if (workerCountEl && workerBarEl) {
-                workerCountEl.innerText = `${activeWorkers}/${totalWorkers} Active`;
-                workerBarEl.style.width = `${workerPercentage}%`;
-
-                if (workerPercentage < 50) workerBarEl.style.background = '#ef4444';
-                else if (workerPercentage < 80) workerBarEl.style.background = '#f59e0b';
-                else workerBarEl.style.background = '#10b981';
+                document.getElementById('accessDeniedContent').style.display = 'none';
+                document.getElementById('mainContent').style.display = 'block';
             }
 
-            // 2. Pending Tasks (From 'complaintData' localstorage - shared with Dashboard)
-            // Note: Since dashboard might use static data initially if LS is empty, we handle that.
-            // But for a true "System Health", we should check LS.
-            const complaints = JSON.parse(localStorage.getItem('complaintData') || '[]');
+            // Show date
+            const now = new Date();
+            const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+            document.getElementById('reportDate').innerText =
+                `${days[now.getDay()]}, ${now.getDate()} ${months[now.getMonth()]} ${now.getFullYear()}`;
 
-            // If LS is empty, use a placeholder "0" or sample? Let's use 0 to be real.
-            // Wait, dashboard initializes some data. Let's assume data exists or use 0.
-            const pendingTasks = complaints.filter(c => c.status === 'Pending').length;
-            const totalTasks = complaints.length || 1; // Avoid divide by zero
-            const pendingPercentage = Math.round((pendingTasks / totalTasks) * 100) || 0;
+            // Fetch all data
+            const [complaints, workers, categories, resources, health] = await Promise.all([
+                apiCall('complaints/', 'GET'),
+                apiCall('workers/', 'GET'),
+                apiCall('categories/', 'GET'),
+                apiCall('resource-requests/', 'GET'),
+                apiCall('system-health/', 'GET')
+            ]);
 
-            const pendingCountEl = document.getElementById('pendingCount');
-            const pendingBarEl = document.getElementById('pendingBar');
+            if (!complaints || !workers) return;
 
-            if (pendingCountEl && pendingBarEl) {
-                pendingCountEl.innerText = `${pendingTasks} Issues`;
-                pendingBarEl.style.width = `${pendingPercentage}%`; // Just a visual scale
+            const total = complaints.length;
+            const resolved = complaints.filter(c => c.status === 'Resolved').length;
+            const pending = complaints.filter(c => c.status === 'Pending' || c.status === 'Awaiting Approval').length;
+            const activeW = workers.filter(w => w.is_available).length;
 
-                // Logic: High pending count = Red bar (warning)
-                if (pendingTasks > 10) pendingBarEl.style.background = '#ef4444';
-                else if (pendingTasks > 5) pendingBarEl.style.background = '#f59e0b';
-                else pendingBarEl.style.background = '#10b981';
+            // ── SYSTEM HEALTH (Backend Driven) ──
+            if (health) {
+                // Resolution Rate (SLA Accuracy)
+                document.getElementById('healthResolve').innerText = (health.operational_sla || 0) + '%';
+                document.getElementById('resolveBar').style.width = (health.operational_sla || 0) + '%';
+                document.getElementById('resolveBar').style.background = health.operational_sla > 85 ? '#10b981' : health.operational_sla > 60 ? '#f59e0b' : '#ef4444';
+
+                // Real Pending Count
+                document.getElementById('healthPending').innerText = health.pending_issues + ' Issues';
+                const pendPct = Math.min(100, (health.pending_issues / Math.max(total, 1)) * 100);
+                document.getElementById('pendingBar').style.width = pendPct + '%';
+                document.getElementById('pendingBar').style.background = health.pending_issues > 15 ? '#ef4444' : health.pending_issues > 5 ? '#f59e0b' : '#10b981';
+
+                // Workforce Health
+                document.getElementById('healthWorkers').innerText = health.workforce_availability + '% Capacity';
+                document.getElementById('workerBar').style.width = health.workforce_availability + '%';
+                document.getElementById('workerBar').style.background = health.workforce_availability > 70 ? '#10b981' : health.workforce_availability > 40 ? '#f59e0b' : '#ef4444';
+
+                // Infrastructure / Database Status (New Badge)
+                const feedbackLabel = document.querySelector('.status-item:last-child .status-label');
+                if (feedbackLabel) feedbackLabel.innerText = 'Infrastructure Status';
+                document.getElementById('healthFeedback').innerText = health.database === 'Healthy' ? 'Database OK' : 'DB Issues';
+                document.getElementById('feedbackBar').style.width = health.database === 'Healthy' ? '100%' : '20%';
+                document.getElementById('feedbackBar').style.background = health.database === 'Healthy' ? '#10b981' : '#ef4444';
             }
-        }
 
-        window.onload = function () {
-            loadExportHistory();
-            updateSystemHealth();
+            // ── SLA SUMMARY ──
+            const nowTime = new Date().getTime();
+            const breachedCount = complaints.filter(c => {
+                if (c.status === 'Resolved') return false;
+                const hoursOld = (nowTime - new Date(c.created_at).getTime()) / (1000 * 60 * 60);
+                if (c.priority === 'High' && hoursOld > 24) return true;
+                if (c.priority === 'Medium' && hoursOld > 48) return true;
+                if (c.priority === 'Low' && hoursOld > 72) return true;
+                return false;
+            }).length;
+            document.getElementById('slaBreachCount').innerText = breachedCount + ' OVERDUE';
+
+            // ── WORKER SUMMARY ──
+            const busyWorkers = workers.filter(w => {
+                const assigned = complaints.filter(c => c.assigned_worker === w.id && c.status !== 'Resolved');
+                return assigned.length > 0;
+            }).length;
+            document.getElementById('activeWorkerCount').innerText = busyWorkers + ' ASSIGNED';
+
+            // ── RESOURCE SUMMARY ──
+            const resCount = resources ? resources.length : 0;
+            document.getElementById('resourceRequestCount').innerText = resCount + ' REQUESTED';
+
+            // ── RESOLUTION TIME BY CATEGORY ──
+            const resBox = document.getElementById('resolutionTimeline');
+            const resolvedComplaints = complaints.filter(c => c.status === 'Resolved' && c.created_at && c.updated_at);
+
+            // Build category list from system categories
+            let catNames = categories ? categories.map(c => c.name) : [];
+            // Also add any categories from complaints not in system
+            complaints.forEach(c => {
+                if (c.category && !catNames.includes(c.category)) catNames.push(c.category);
+            });
+
+            const catResolution = {};
+            catNames.forEach(name => { catResolution[name] = { totalDays: 0, count: 0 }; });
+            catResolution['Uncategorized'] = { totalDays: 0, count: 0 };
+
+            resolvedComplaints.forEach(c => {
+                const cat = c.category || 'Uncategorized';
+                if (!catResolution[cat]) catResolution[cat] = { totalDays: 0, count: 0 };
+                const days = (new Date(c.updated_at) - new Date(c.created_at)) / (1000 * 60 * 60 * 24);
+                catResolution[cat].totalDays += days;
+                catResolution[cat].count++;
+            });
+
+            const catColors = ['#3b82f6', '#f59e0b', '#10b981', '#8b5cf6', '#ec4899', '#06b6d4', '#ef4444', '#64748b'];
+            const resEntries = Object.entries(catResolution);
+            const maxDays = Math.max(...resEntries.map(([, d]) => d.count > 0 ? d.totalDays / d.count : 0), 1);
+
+            if (resEntries.length > 0) {
+                resBox.innerHTML = resEntries.map(([cat, data], i) => {
+                    const avg = data.count > 0 ? (data.totalDays / data.count) : 0;
+                    const avgLabel = avg < 1 ? Math.round(avg * 24) + ' hrs' : avg.toFixed(1) + ' days';
+                    const pct = (avg / maxDays) * 100;
+                    const color = catColors[i % catColors.length];
+                    return `
+                        <div class="resolution-row">
+                            <span class="res-cat">${cat}</span>
+                            <div class="res-bar-bg">
+                                <div class="res-bar-fill" style="width:${Math.max(pct, 3)}%; background:${color};"></div>
+                            </div>
+                            <span class="res-value">${data.count > 0 ? avgLabel : '—'}</span>
+                        </div>`;
+                }).join('');
+            } else {
+                resBox.innerHTML = '<p style="color:#94a3b8; text-align:center;">No data available</p>';
+            }
+
+            // ── COMPLAINT REGISTER ──
+            document.getElementById('tableCount').innerText = total + ' records';
+
             syncSidebarSettings();
         };
     </script>

@@ -2,9 +2,10 @@
 <html>
 
 <head>
-    <title>Emergency</title>
-    <link rel="stylesheet" href="../static/css/style.css">
-    <script src="../static/js/main.js"></script>
+    <meta charset="UTF-8">
+    <title>Emergency | HostelHub</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <script src="/static/js/main.js"></script>
 
     <style>
         .grid {
@@ -46,7 +47,7 @@
 
 <body>
 
-    <div class="app">
+    <div class="app student-app">
 
         <!-- Sidebar -->
         <div class="sidebar">
@@ -54,11 +55,11 @@
             <p class="portal-label">Student Portal</p>
 
             <ul>
-                <li onclick="location.href='dashboard.html'">Dashboard</li>
-                <li onclick="location.href='complaints.html'">My Complaints</li>
-                <li onclick="location.href='request_resources.html'">Request Resources</li>
-                <li onclick="location.href='notices.html'">Notices</li>
-                <li onclick="location.href='emergency.html'">Emergency</li>
+                <li onclick="location.href='/student/dashboard.html'">Dashboard</li>
+                <li onclick="location.href='/student/complaints.html'">My Complaints</li>
+                <li onclick="location.href='/student/request_resources.html'">Request Resources</li>
+                <li onclick="location.href='/student/notices.html'">Notices</li>
+                <li class="active">Emergency</li>
             </ul>
             <div class="sidebar-logout" onclick="logout()">
                 Logout
@@ -69,24 +70,29 @@
 
         <!-- Content -->
         <div class="content">
-            <h2>Emergency Information</h2>
-            <p>Quick access to important emergency contacts and procedures</p>
+            <h2 id="val_hostel_name">HostelHub Main Campus</h2>
+            <p>Quick access to important emergency contacts and procedures for your hostel</p>
 
             <div class="grid">
 
                 <div class="em-card info">
                     <b>Hostel Warden</b><br>
-                    📞 +91 98765 43210
+                    📞 <span id="val_warden_contact">+91 98765 43210</span>
                 </div>
 
                 <div class="em-card info">
                     <b>Security Office</b><br>
-                    📞 +91 98765 43211
+                    📞 <span id="val_security_office">+91 98765 43211</span>
                 </div>
 
                 <div class="em-card success">
                     <b>Medical Emergency</b><br>
-                    📞 +91 98765 43213
+                    📞 <span id="val_medical_help">+91 98765 43213</span>
+                </div>
+
+                <div class="em-card info">
+                    <b>Maintenance Email</b><br>
+                    ✉️ <span id="val_maintenance_email">maintenance@hostelhub.com</span>
                 </div>
 
                 <div class="em-card warning">
@@ -113,9 +119,22 @@
     </div>
 
     <script>
-        window.onload = function () {
+        window.onload = async function () {
             syncSidebarSettings();
-        }
+
+            // Load Emergency Contacts from Settings
+            const settings = await apiCall('settings/', 'GET');
+            if (settings) {
+                const keys = ['hostel_name', 'warden_contact', 'security_office', 'medical_help', 'maintenance_email'];
+                keys.forEach(key => {
+                    const setting = settings.find(s => s.key === key);
+                    const el = document.getElementById(`val_${key}`);
+                    if (setting && el) {
+                        el.innerText = setting.value;
+                    }
+                });
+            }
+        };
     </script>
 </body>
 

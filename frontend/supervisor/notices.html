@@ -2,9 +2,10 @@
 <html lang="en">
 
 <head>
+    <meta charset="UTF-8">
     <title>Notices | Supervisor</title>
-    <link rel="stylesheet" href="../static/css/style.css">
-    <script src="../static/js/main.js"></script>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <script src="/static/js/main.js"></script>
 
     <style>
         .notice-grid {
@@ -134,18 +135,18 @@
 
 <body>
 
-    <div class="app">
+    <div class="app supervisor-app">
 
         <!-- Sidebar -->
         <div class="sidebar">
             <h2>HostelHub</h2>
             <p style="color:#777;font-size:14px;">Supervisor Portal</p>
             <ul>
-                <li onclick="location.href='dashboard.html'">Dashboard</li>
-                <li onclick="location.href='complaints.html'">Lifecycle Manager</li>
-                <li onclick="location.href='workers.html'">Manage Workers</li>
-                <li class="active">Notices</li>
-                <li onclick="location.href='reports.html'">Reports</li>
+                <li onclick="location.href='/supervisor/dashboard.html'">Dashboard</li>
+                <li onclick="location.href='/supervisor/complaints.html'">Lifecycle Manager</li>
+                <li onclick="location.href='/supervisor/workers.html'">Manage Workers</li>
+                <li class="active" onclick="location.href='/supervisor/notices.html'">Notices</li>
+                <li onclick="location.href='/supervisor/reports.html'">Reports</li>
             </ul>
             <div class="sidebar-logout" onclick="logout()">
                 Logout

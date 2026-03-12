@@ -1,76 +1,373 @@
 <!DOCTYPE html>
-<html>
-
+<html lang="en">
 <head>
-    <title>HostelHub | Login</title>
-    <link rel="stylesheet" href="static/css/style.css">
-</head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HostelHub | Management Ecosystem</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #2b7cff;
+            --role-color: #2b7cff;
+            --base-bg: #edf2fb;
+        }
 
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: 'Outfit', sans-serif; 
+            height: 100vh; 
+            overflow: hidden; 
+            background: var(--base-bg);
+            color: #1e293b;
+        }
+
+        /* --- BACKGROUND SYSTEM --- */
+        #master-bg {
+            position: fixed;
+            inset: 0;
+            z-index: -1;
+            pointer-events: none;
+            overflow: hidden;
+            transition: opacity 0.5s;
+        }
+
+        /* 1. Ambient Gradient */
+        .ambient-layer {
+            position: absolute;
+            inset: 0;
+            background: 
+                radial-gradient(circle at 0% 0%, rgba(43,124,255,0.13), transparent 40%),
+                radial-gradient(circle at 100% 0%, rgba(0,200,255,0.11), transparent 40%),
+                radial-gradient(circle at 100% 100%, rgba(124,92,252,0.09), transparent 40%),
+                radial-gradient(circle at 0% 100%, rgba(6,182,212,0.10), transparent 40%);
+            animation: breathing 22s infinite alternate linear;
+        }
+        @keyframes breathing {
+            0% { filter: brightness(1) saturate(1) hue-rotate(0deg); }
+            50% { filter: brightness(1.1) saturate(1.1) hue-rotate(5deg); }
+            100% { filter: brightness(1.2) saturate(1.2) hue-rotate(10deg); }
+        }
+
+        /* 11. 22 Rising Particles - kept subtle */
+        .particle { position: absolute; border-radius: 50%; bottom: -10px; animation: riseUp var(--dur) linear infinite; opacity: 0; }
+        @keyframes riseUp {
+            0% { transform: translateY(0); opacity: 0; }
+            10% { opacity: 0.3; }
+            90% { opacity: 0.3; }
+            100% { transform: translateY(-110vh); opacity: 0; }
+        }
+
+        /* --- SCENE TRANISTIONS --- */
+        .scene {
+            position: fixed; inset: 0; display: none;
+            flex-direction: column; align-items: center; justify-content: center;
+            z-index: 10; padding: 40px;
+        }
+        .scene.active { display: flex; }
+
+        .scene-overlay {
+            position: fixed; inset: 0; z-index: 2000;
+            background: radial-gradient(circle at center, #1e3a8a, #2b7cff, #00c6ff);
+            opacity: 0; pointer-events: none; transition: opacity 0.6s;
+        }
+
+        /* SCENE 1 - LANDING */
+        .landing-wrap { text-align: center; animation: landingReveal 1.2s cubic-bezier(0.23, 1, 0.32, 1); }
+        .logo-mark {
+            width: 90px; height: 90px; border-radius: 28px; 
+            background: linear-gradient(135deg, #1e3a8a, #2b7cff, #00c6ff);
+            margin: 0 auto 28px; display: flex; align-items: center; justify-content: center;
+            position: relative; animation: logoGlow 3s infinite; box-shadow: 0 0 20px rgba(43,124,255,0.3);
+        }
+        .logo-mark svg { width: 50px; height: 50px; fill: none; stroke: white; stroke-width: 1.8; }
+        .logo-mark::after {
+            content:''; position: absolute; inset: -100%;
+            background: linear-gradient(45deg, transparent, rgba(255,255,255,0.4), transparent);
+            transform: rotate(45deg); animation: sheen 4s infinite;
+        }
+        @keyframes landingReveal { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes logoGlow { 0%, 100% { box-shadow: 0 0 0 0 rgba(43,124,255,0.4); } 50% { box-shadow: 0 0 40px 10px rgba(43,124,255,0.6); } }
+        @keyframes sheen { 0% { transform: translate(-100%, -100%) rotate(45deg); } 100% { transform: translate(100%, 100%) rotate(45deg); } }
+
+        .brand-title {
+            font-size: 80px; font-weight: 900; letter-spacing: -4px;
+            background: linear-gradient(90deg, #1a365d, #4338ca, #2563eb, #0ea5e9, #2563eb, #4338ca, #1a365d);
+            background-size: 300%; -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            animation: textShimmer 6s linear infinite;
+        }
+        @keyframes textShimmer { to { background-position: 300% center; } }
+        .tagline { font-size: 13px; font-weight: 700; letter-spacing: 8px; color: #64748b; margin-top: 10px; opacity: 0; animation: fadeUp 0.6s forwards 0.3s; }
+        @keyframes fadeUp { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* SCENE 2 - LOGIN/PORTAL */
+        .login-scene-wrap {
+            width: 100%; max-width: 1200px; display: flex; flex-direction: column; align-items: center; gap: 48px;
+            transition: transform 1s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.5s;
+        }
+        .brand-header-mini { text-align: center; }
+        .portal-grid { display: flex; gap: 30px; transition: 0.6s; }
+        .portal-card {
+            width: 250px; background: #ffffff;
+            border-radius: 40px; padding: 50px 35px; text-align: center; cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1); border: 2px solid #f1f5f9;
+        }
+        .portal-card:hover { transform: translateY(-10px); border-color: var(--c); box-shadow: 0 20px 40px rgba(0,0,0,0.06); }
+        .icon-box {
+            width: 80px; height: 80px; background: #f1f5f9; border-radius: 24px;
+            display: flex; align-items: center; justify-content: center; margin: 0 auto 30px;
+            transition: 0.4s;
+        }
+        .icon-box svg { width: 40px; height: 40px; stroke: var(--c); fill: none; stroke-width: 2; transition: 0.4s; }
+        .portal-card:hover .icon-box { background: var(--c); transform: scale(1.05); }
+        .portal-card:hover .icon-box svg { stroke: white; }
+
+        /* Auth Form Overlay */
+        .auth-portal-wrap { display: none; width: 480px; }
+        .auth-card {
+            background: #ffffff;
+            border-radius: 40px; padding: 50px; border: 2px solid rgba(var(--rc), 0.1);
+            width: 100%;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.05);
+            position: relative;
+            overflow: hidden;
+        }
+        .auth-card.flipping .auth-front { opacity: 0; pointer-events: none; }
+        .auth-card.flipping .auth-back { opacity: 1; pointer-events: all; }
+        .auth-front { transition: opacity 0.3s ease; }
+        .auth-back {
+            position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center;
+            background: #ffffff; border-radius: 40px; opacity: 0; pointer-events: none; transition: opacity 0.3s ease;
+        }
+        .back-link {
+            display: inline-flex; align-items: center; gap: 8px; color: #64748b; font-size: 11px; font-weight: 800;
+            letter-spacing: 2px; text-transform: uppercase; cursor: pointer; margin-bottom: 35px; transition: 0.3s;
+        }
+        .back-link:hover { color: #2b7cff; transform: translateX(-5px); }
+        .field { margin-bottom: 24px; text-align: left; }
+        .field label { display: block; font-size: 10px; font-weight: 800; letter-spacing: 2px; color: #64748b; margin-bottom: 10px; }
+        .input-wrap { position: relative; }
+        .input-wrap svg { position: absolute; left: 18px; top: 50%; transform: translateY(-50%); width: 20px; height: 20px; stroke: #94a3b8; pointer-events:none; }
+        .input-wrap input {
+            width: 100%; padding: 18px 20px 18px 48px; background: white; border: 2px solid #f1f5f9;
+            border-radius: 16px; font-family: inherit; font-size: 15px; outline: none; transition: 0.3s;
+        }
+        .input-wrap input:focus { border-color: #2b7cff; box-shadow: 0 5px 15px rgba(43,124,255,0.05); }
+        .sub-btn {
+            width: 100%; height: 60px; border-radius: 18px; border: 2px solid var(--role-color);
+            background: transparent; color: var(--role-color); font-weight: 800; letter-spacing: 3px;
+            cursor: pointer; transition: 0.4s; margin-top: 10px;
+        }
+        .sub-btn:hover { background: var(--role-color); color: white; transform: translateY(-5px); box-shadow: 0 15px 35px rgba(var(--rc), 0.3); }
+
+        .spinner { width: 40px; height: 40px; border: 4px solid rgba(0,0,0,0.1); border-top-color: var(--role-color); border-radius: 50%; animation: spin 0.8s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* SCENE 3 - SUCCESS TRANSITION (HIDDEN/VIRTUAL) */
+        .success-overlay { position: fixed; inset: 0; z-index: 3000; background: white; opacity: 0; pointer-events: none; transition: opacity 0.5s; }
+
+    </style>
+</head>
 <body>
 
-    <div class="app" style="justify-content:center;align-items:center;">
-
-        <div class="card" style="width:420px;">
-            <h2 style="text-align:center;">Welcome Back</h2>
-            <p style="text-align:center;">Select Role</p>
-
-            <label>Role</label>
-            <select id="role">
-                <option value="student">Student</option>
-                <option value="supervisor">Maintenance Supervisor</option>
-                <option value="admin">Admin</option>
-            </select>
-
-            <label>Username</label>
-            <input type="text" id="username" placeholder="Username">
-
-            <label>Password</label>
-            <input type="password" id="password" placeholder="Password">
-
-            <button class="btn" onclick="performLogin()">Login</button>
-        </div>
-
+    <!-- CLOUD BACKGROUND INFRASTRUCTURE -->
+    <div id="master-bg">
+        <div class="ambient-layer"></div>
+        <div id="particles-canvas"></div>
     </div>
 
-    <!-- Import Main JS which contains apiCall -->
-    <script src="static/js/main.js"></script>
+    <div class="scene-overlay" id="scene-overlay"></div>
+    <div class="success-overlay" id="success-overlay"></div>
 
+    <!-- SCENE 1 -->
+    <div class="scene active" id="scene-landing">
+        <div class="landing-wrap" id="landing-wrap">
+            <div class="logo-mark" id="logo-main">
+                <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </div>
+            <h1 class="brand-title">HostelHub</h1>
+            <p class="tagline">MANAGEMENT ECOSYSTEM</p>
+        </div>
+    </div>
+
+    <!-- SCENE 2 -->
+    <div class="scene" id="scene-login">
+        <div class="login-scene-wrap" id="login-scene-wrap">
+            <div class="brand-header-mini">
+                <h1 class="brand-title" style="font-size:58px; letter-spacing:-2px; margin-bottom:5px;">HostelHub</h1>
+                <p class="tagline" style="margin-top:0; letter-spacing:6px; font-weight:600;">MANAGEMENT ECOSYSTEM</p>
+            </div>
+
+            <div class="portal-grid" id="portal-grid">
+                <div class="portal-card" style="--c:#10b981; --rc:16, 185, 129;" onclick="selectPortal('student')">
+                    <div class="icon-box"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
+                    <h3>Student</h3>
+                    <p style="font-size:14px; color:#64748b; margin-top:15px; line-height:1.6;">Personal portal for complaints and material requests.</p>
+                </div>
+                <div class="portal-card" style="--c:#dc3545; --rc:220, 53, 69;" onclick="selectPortal('supervisor')">
+                    <div class="icon-box"><svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div>
+                    <h3>Supervisor</h3>
+                    <p style="font-size:14px; color:#64748b; margin-top:15px; line-height:1.6;">Operational toolkit for task lifecycle & worker management.</p>
+                </div>
+                <div class="portal-card" style="--c:#f59e0b; --rc:245, 158, 11;" onclick="selectPortal('admin')">
+                    <div class="icon-box"><svg viewBox="0 0 24 24"><path d="M18 3a3 3 0 0 0-3 3v12a3 3 0 0 0 3 3 3 3 0 0 0 3-3 3 3 0 0 0-3-3H6a3 3 0 0 0-3 3 3 3 0 0 0 3 3 3 3 0 0 0 3-3V6a3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3h12a3 3 0 0 0 3-3 3 3 0 0 0-3-3z"/></svg></div>
+                    <h3>Admin</h3>
+                    <p style="font-size:14px; color:#64748b; margin-top:15px; line-height:1.6;">Global configuration, analytics, and user oversight.</p>
+                </div>
+            </div>
+
+            <div class="auth-portal-wrap" id="auth-portal-wrap">
+                <div class="auth-card" id="auth-card">
+                    <div class="auth-front">
+                        <div class="back-link" onclick="exitPortal()">
+                            <svg data-lucide="chevron-left" style="width:14px; stroke:currentColor; stroke-width:3; transform:translateY(-1px);"></svg>
+                            BACK TO SELECTION
+                        </div>
+                        <h2 id="auth-title" style="font-size:32px; color:#1e293b; margin-bottom:10px;">Login</h2>
+                        <p id="auth-subtitle" style="font-size:14px; color:#64748b; margin-bottom:35px;">Verify your identity to access this portal.</p>
+                        
+                        <div class="field">
+                            <label>USERNAME</label>
+                            <div class="input-wrap">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                                <input type="text" id="username_in">
+                            </div>
+                        </div>
+                        <div class="field">
+                            <label>PASSWORD</label>
+                            <div class="input-wrap">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                                <input type="password" id="password_in">
+                            </div>
+                        </div>
+                        
+                        <button class="sub-btn" onclick="performLogin()">LOG IN</button>
+                    </div>
+                    <div class="auth-back">
+                        <div class="spinner"></div>
+                        <p style="margin-top:24px; font-weight:800; letter-spacing:2px; color:#1e293b; font-size:11px;">AUTHENTICATING</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SCRIPTS -->
+    <script src="/static/js/main.js"></script>
     <script>
-        async function performLogin() {
-            const role = document.getElementById("role").value;
-            const username = document.getElementById("username").value;
-            const password = document.getElementById("password").value;
-
-            if (!username || !password) {
-                alert("Please enter username and password");
-                return;
+        // --- SCENE LOGIC ---INFRA ---
+        function initBackground() {
+            // Particles
+            const partCanvas = document.getElementById('particles-canvas');
+            if (partCanvas) {
+                const nodeTypes = ['#2b7cff', '#00c6ff', '#06b6d4', '#7c5cfc'];
+                for(let i=0; i<22; i++) {
+                    const p = document.createElement('div'); p.className = 'particle';
+                    const s = 1.5 + Math.random()*2.5; 
+                    p.style.cssText = `width:${s}px; height:${s}px; left:${Math.random()*100}%; background:${nodeTypes[i%4]}; --dur:${14+Math.random()*22}s; animation-delay:${Math.random()*10}s;`;
+                    partCanvas.appendChild(p);
+                }
             }
+        }
+
+        // --- SCENE LOGIC ---
+        function startLandingSequence() {
+            setTimeout(() => {
+                // Transition to Scene 2
+                const logo = document.getElementById('logo-main');
+                logo.style.transition = '0.55s transform ease-in, 0.55s opacity';
+                logo.style.transform = 'scale(4)'; logo.style.opacity = '0';
+                
+                const overlay = document.getElementById('scene-overlay');
+                setTimeout(() => overlay.style.opacity = '1', 100);
+
+                setTimeout(() => {
+                    document.getElementById('scene-landing').classList.remove('active');
+                    const s2 = document.getElementById('scene-login');
+                    s2.classList.add('active');
+                    const wrap = document.getElementById('login-scene-wrap');
+                    wrap.style.opacity = '0'; wrap.style.transform = 'translateY(18px)';
+                    
+                    setTimeout(() => {
+                        overlay.style.opacity = '0';
+                        wrap.style.opacity = '1'; wrap.style.transform = 'translateY(0)';
+                    }, 140);
+                }, 560);
+            }, 2800);
+        }
+
+        let selectedRole = null;
+        function selectPortal(role) {
+            selectedRole = role;
+            const data = {
+                student: { title: "Student Login", r: "16, 185, 129", c: "#10b981", u: "student1", p: "pass123" },
+                supervisor: { title: "Supervisor Hub", r: "220, 53, 69", c: "#dc3545", u: "supervisor1", p: "pass123" },
+                admin: { title: "Admin Portal", r: "245, 158, 11", c: "#f59e0b", u: "admin", p: "admin123" }
+            }[role];
+
+            document.getElementById('portal-grid').style.display = 'none';
+            const authWrap = document.getElementById('auth-portal-wrap');
+            authWrap.style.display = 'block';
+            
+            document.body.style.setProperty('--role-color', data.c);
+            document.body.style.setProperty('--rc', data.r);
+            document.getElementById('auth-title').innerText = data.title;
+            document.getElementById('username_in').value = data.u;
+            document.getElementById('password_in').value = data.p;
+            document.getElementById('auth-card').style.borderColor = `rgba(${data.r}, 0.25)`;
+        }
+
+        function exitPortal() {
+            selectedRole = null;
+            document.getElementById('portal-grid').style.display = 'flex';
+            document.getElementById('auth-portal-wrap').style.display = 'none';
+        }
+
+        async function performLogin() {
+            const username = document.getElementById('username_in').value;
+            const password = document.getElementById('password_in').value;
+            if(!username || !password) return alert("Please enter credentials.");
+
+            const card = document.getElementById('auth-card');
+            card.classList.add('flipping');
 
             try {
                 const response = await apiCall("auth/login/", "POST", { username, password });
-
-                if (response && response.token) {
+                if(response && response.token) {
                     localStorage.setItem("token", response.token);
                     localStorage.setItem("user", JSON.stringify(response.user));
+                    
+                    const role = response.user.role;
+                    let target = "/student/dashboard.html";
+                    if(role === 'admin') target = "/admin/dashboard.html";
+                    else if(role === 'supervisor') target = "/supervisor/dashboard.html";
 
-                    // Verify role matches
-                    if (response.user.role !== role) {
-                        alert(`Warning: You logged in as ${response.user.role}, but selected ${role}. Redirecting to your actual dashboard.`);
-                    }
-
-                    if (response.user.role === "student") location.href = "student/dashboard.html";
-                    else if (response.user.role === "supervisor") location.href = "supervisor/dashboard.html";
-                    else if (response.user.role === "admin") location.href = "admin/dashboard.html";
+                    // Success Animation
+                    setTimeout(() => {
+                        const wrap = document.getElementById('login-scene-wrap');
+                        wrap.style.transform = 'translateY(-110vh)';
+                        document.getElementById('master-bg').style.opacity = '0';
+                        
+                        setTimeout(() => {
+                            document.getElementById('success-overlay').style.opacity = '1';
+                            setTimeout(() => { location.href = target; }, 400);
+                        }, 500);
+                    }, 900);
                 } else {
-                    alert("Login failed: " + (response ? response.error : "Unknown error"));
+                    alert("Invalid credentials.");
+                    card.classList.remove('flipping');
                 }
-            } catch (e) {
-                console.error(e);
-                alert("Login failed: " + e.message);
+            } catch(e) {
+                alert("Auth system error.");
+                card.classList.remove('flipping');
             }
         }
+
+        window.onload = () => {
+            initBackground();
+            startLandingSequence();
+        };
+
+        document.addEventListener('keypress', (e) => { if (e.key === 'Enter' && selectedRole) performLogin(); });
     </script>
-
 </body>
-
 </html>

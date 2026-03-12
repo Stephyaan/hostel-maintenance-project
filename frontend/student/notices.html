@@ -2,9 +2,10 @@
 <html>
 
 <head>
-    <title>Notices</title>
-    <link rel="stylesheet" href="../static/css/style.css">
-    <script src="../static/js/main.js"></script>
+    <meta charset="UTF-8">
+    <title>Notices | HostelHub</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <script src="/static/js/main.js"></script>
     <style>
         .notice {
             padding: 16px;
@@ -37,7 +38,7 @@
 
 <body>
 
-    <div class="app">
+    <div class="app student-app">
 
         <!-- Sidebar -->
         <div class="sidebar">
@@ -45,11 +46,11 @@
             <p class="portal-label">Student Portal</p>
 
             <ul>
-                <li onclick="location.href='dashboard.html'">Dashboard</li>
-                <li onclick="location.href='complaints.html'">My Complaints</li>
-                <li onclick="location.href='request_resources.html'">Request Resources</li>
-                <li onclick="location.href='notices.html'">Notices</li>
-                <li onclick="location.href='emergency.html'">Emergency</li>
+                <li onclick="location.href='/student/dashboard.html'">Dashboard</li>
+                <li onclick="location.href='/student/complaints.html'">My Complaints</li>
+                <li onclick="location.href='/student/request_resources.html'">Request Resources</li>
+                <li class="active">Notices</li>
+                <li onclick="location.href='/student/emergency.html'">Emergency</li>
             </ul>
             <div class="sidebar-logout" onclick="logout()">
                 Logout

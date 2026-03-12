@@ -1,4 +1,6 @@
-const API_URL = "http://127.0.0.1:8000/api/";
+const API_URL = "/api/";
+
+console.log('✅ HostelHub API Helper v1.2.1 Loaded');
 
 // Generic API Fetcher
 async function apiCall(endpoint, method = "GET", data = null) {
@@ -38,20 +40,15 @@ async function apiCall(endpoint, method = "GET", data = null) {
         return await response.json();
     } catch (error) {
         console.error("API Call Failed:", error);
-        alert(error.message);
+        // Removed alert to prevent annoying popups on page load/network issues
         return null;
     }
 }
 
 function logout() {
     localStorage.clear();
-    // Check if we are in a subdirectory (e.g. /student/dashboard.html)
-    if (window.location.pathname.includes('/frontend/')) {
-        // Adjust path based on depth. This is a simple heuristic.
-        window.location.href = "../index.html";
-    } else {
-        window.location.href = "index.html";
-    }
+    // Redirect to root login page
+    window.location.href = "/";
 }
 
 // Global UI Settings Syncer
@@ -67,17 +64,6 @@ async function syncSidebarSettings() {
 
         // If user is currently on that page, redirect away
         if (window.location.pathname.includes('request_resources.html')) {
-            window.location.href = 'dashboard.html';
-        }
-    }
-
-    // Supervisor specific: Worker management
-    const workerAccess = settings.find(s => s.key === 'worker_management_access');
-    if (workerAccess && workerAccess.value === false) {
-        const item = document.querySelector('li[onclick*="workers.html"]');
-        if (item) item.style.display = 'none';
-
-        if (window.location.pathname.includes('workers.html')) {
             window.location.href = 'dashboard.html';
         }
     }

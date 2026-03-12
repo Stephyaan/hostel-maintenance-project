@@ -2,7 +2,8 @@
 <html>
 
 <head>
-    <title>All Complaints | Admin</title>
+    <meta charset="UTF-8">
+    <title>All Complaints | HostelHub</title>
     <link rel="stylesheet" href="../static/css/style.css">
     <script src="../static/js/main.js"></script>
     <style>
@@ -168,7 +169,7 @@
 
 <body>
 
-    <div class="app">
+    <div class="app admin-app">
 
         <!-- SIDEBAR -->
         <div class="sidebar">
@@ -239,9 +240,9 @@
             ]);
 
             if (settings) {
-                // User requested: ON -> NO approval needed, OFF -> approval needed
+                // User requested: ON -> approval needed, OFF -> NO approval needed
                 const setting = settings.find(s => s.key === 'complaint_request_approval');
-                approvalRequiredByAdmin = (setting && setting.value === false);
+                approvalRequiredByAdmin = (setting && setting.value === true);
             }
 
             if (complaints) {
@@ -258,21 +259,21 @@
 
             allComplaints.forEach(c => {
                 const dateStr = new Date(c.created_at).toLocaleDateString();
-                const isAwaiting = c.status === "Awaiting Approval";
+                const effectiveStatus = (c.status === "Awaiting Approval" && !approvalRequiredByAdmin) ? "In Progress" : c.status;
+                const isAwaitingApproved = effectiveStatus === "Awaiting Approval";
 
-                // If setting is ON (value=true), then approvalRequiredByAdmin is false.
-                // We only show approval buttons if the setting says it's required (OFF).
-                const showApproveAction = isAwaiting && approvalRequiredByAdmin;
+                // We only show approval buttons if the setting says it's required (ON).
+                const showApproveAction = isAwaitingApproved;
 
                 const html = `
-                    <div class="complaint" style="${isAwaiting ? 'border: 1px solid #f0ad4e; background: #fffcf9;' : ''}">
+                    <div class="complaint" style="${isAwaitingApproved ? 'border: 1px solid #f0ad4e; background: #fffcf9;' : ''}">
                         <div class="row">
                             <div>
                                 <div class="title">${c.title}</div>
-                                <div class="meta">${c.room} • #CMP-${c.id} • ${dateStr}</div>
-                                <div class="meta" style="color:#2b7cff; font-weight:600;">👤 ${c.student_name}</div>
+                                <div class="meta">${c.room} • #CMP-${c.id} • ${dateStr} • <b>${c.category || 'General'}</b> (ETR: ${c.etr_hours || 24}h)</div>
+                                <div class="meta" style="color:#2b7cff; font-weight:600;">👤 ${c.is_anonymous ? 'Anonymous' : (c.student_name || 'Student')}</div>
                             </div>
-                            <span class="badge ${getStatusClass(c.status)}">${c.status}</span>
+                            <span class="badge ${getStatusClass(effectiveStatus)}">${effectiveStatus}</span>
                         </div>
                         <div class="action-btns">
                             <button class="btn-sm btn-primary" onclick="viewComplaint(${c.id})">View Details</button>
@@ -311,12 +312,30 @@
             const dateStr = new Date(c.created_at).toLocaleString();
             document.getElementById("modalBody").innerHTML = `
                 <p><b>Issue:</b> ${c.title}</p>
-                <p><b>Student:</b> ${c.student_name}</p>
+                <p><b>Student:</b> ${c.is_anonymous ? 'Anonymous' : (c.student_name || '—')}</p>
+                <p><b>Category:</b> ${c.category || 'General'} &nbsp;|&nbsp; <b>ETR:</b> ${c.etr_hours || 24} hours</p>
+                <p><b>Priority:</b> ${c.priority}</p>
                 <p><b>Location:</b> ${c.room}</p>
                 <p><b>Reported:</b> ${dateStr}</p>
                 <p><b>Status:</b> ${c.status}</p>
                 <p><b>Description:</b> ${c.description}</p>
                 ${c.assigned_worker_name ? `<p><b>Assigned Worker:</b> ${c.assigned_worker_name}</p>` : ''}
+                ${c.resolution_proof ? `
+                    <div style="margin-top:10px; padding:15px; background:#f0fdf4; border-radius:10px; border:1px solid #bbf7d0;">
+                        <b style="color:#166534; font-size:12px; text-transform:uppercase;">📸 Resolution Evidence:</b>
+                        ${c.resolution_proof.startsWith('data:image/')
+                        ? `<img src="${c.resolution_proof}" style="width:100%; max-height:250px; object-fit:cover; border-radius:8px; margin-top:8px; display:block; cursor:pointer;" onclick="window.open(this.src)">`
+                        : `<p style="margin:8px 0 0 0; font-size:14px; color:#1e293b; line-height:1.4;">${c.resolution_proof}</p>`
+                    }
+                    </div>
+                ` : ''}
+                ${c.feedback_rating ? `
+                    <div style="margin-top:10px; padding:15px; background:#fffbeb; border-radius:10px; border:1px solid #fde68a;">
+                        <b style="color:#d97706; font-size:12px; text-transform:uppercase;">⭐ Student Feedback:</b>
+                        <p style="margin:5px 0 0 0; font-size:16px;">${'★'.repeat(c.feedback_rating)}${'☆'.repeat(5 - c.feedback_rating)} &nbsp;<span style="font-size:14px; color:#1e293b; font-weight:600;">${c.feedback_rating}/5</span></p>
+                        ${c.feedback_comment ? `<p style="margin:8px 0 0 0; font-size:14px; color:#475569; font-style:italic; border-left:3px solid #fcd34d; padding-left:10px;">"${c.feedback_comment}"</p>` : ''}
+                    </div>
+                ` : ''}
             `;
             const modalActions = document.getElementById('modalActions');
             modalActions.innerHTML = '';

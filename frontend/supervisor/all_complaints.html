@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Complaint Register | HostelHub</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <script src="/static/js/main.js"></script>
+    <style>
+        :root {
+            --primary: #2b7cff;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --slate-50: #f8fafc;
+            --slate-100: #f1f5f9;
+            --slate-200: #e2e8f0;
+            --slate-600: #475569;
+            --slate-700: #334155;
+        }
+
+        .container {
+            display: flex;
+            gap: 24px;
+            height: calc(100vh - 160px);
+            margin-top: 20px;
+        }
+
+        .list-panel {
+            flex: 1;
+            background: #fff;
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            border: 1px solid var(--slate-100);
+        }
+
+        .detail-panel {
+            width: 480px;
+            background: #fff;
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 4px 25px rgba(0, 0, 0, 0.06);
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+            border: 1px solid var(--slate-100);
+            position: relative;
+        }
+
+        .detail-panel::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 5px;
+            height: 100%;
+            background: var(--primary);
+            border-radius: 16px 0 0 16px;
+        }
+
+        .search-bar {
+            margin-bottom: 20px;
+            display: flex;
+            gap: 12px;
+        }
+
+        .search-bar input {
+            flex: 1;
+            padding: 12px 18px;
+            border: 1px solid var(--slate-200);
+            border-radius: 10px;
+            font-size: 14px;
+            transition: 0.2s;
+            outline: none;
+        }
+
+        .search-bar input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(43, 124, 255, 0.1);
+        }
+
+        .search-bar select {
+            padding: 0 15px;
+            border-radius: 10px;
+            border: 1px solid var(--slate-200);
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--slate-700);
+            outline: none;
+        }
+
+        .list-container {
+            flex: 1;
+            overflow-y: auto;
+            padding-right: 10px;
+        }
+
+        .list-container::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .list-container::-webkit-scrollbar-thumb {
+            background: var(--slate-200);
+            border-radius: 10px;
+        }
+
+        .complaint-item {
+            padding: 20px;
+            border-radius: 12px;
+            border: 1px solid var(--slate-100);
+            margin-bottom: 15px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            position: relative;
+            background: #fff;
+        }
+
+        .complaint-item:hover {
+            border-color: var(--primary);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        }
+
+        .complaint-item.active {
+            border-color: var(--primary);
+            background: #f0f7ff;
+            box-shadow: 0 4px 15px rgba(43, 124, 255, 0.12);
+        }
+
+        .status-pill {
+            font-size: 10px;
+            font-weight: 800;
+            padding: 5px 10px;
+            border-radius: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .priority-indicator {
+            width: 4px;
+            height: 40px;
+            position: absolute;
+            left: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            border-radius: 0 4px 4px 0;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 80px 40px;
+            color: var(--slate-600);
+        }
+
+        .back-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--slate-100);
+            border: none;
+            padding: 8px 16px;
+            border-radius: 8px;
+            color: var(--slate-700);
+            font-weight: 700;
+            font-size: 13px;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .back-btn:hover {
+            background: var(--slate-200);
+            transform: translateX(-3px);
+        }
+
+        label {
+            display: block;
+            font-size: 11px;
+            text-transform: uppercase;
+            color: var(--slate-600);
+            font-weight: 800;
+            letter-spacing: 1px;
+            margin-bottom: 5px;
+        }
+
+        .detail-section {
+            padding: 15px 0;
+            border-bottom: 1px solid var(--slate-100);
+        }
+
+        .btn-lifecycle {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-weight: 700;
+            font-size: 13px;
+            cursor: pointer;
+            margin-top: 10px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: 0.2s;
+        }
+
+        .btn-lifecycle:hover {
+            background: #1d5ce0;
+            box-shadow: 0 4px 12px rgba(43, 124, 255, 0.3);
+        }
+    </style>
+</head>
+<body>
+    <div class="app supervisor-app">
+        <div class="sidebar">
+            <h2>HostelHub</h2>
+            <p style="color:#777;font-size:14px;">Supervisor Portal</p>
+            <ul>
+                <li onclick="location.href='/supervisor/dashboard.html'">Dashboard</li>
+                <li onclick="location.href='/supervisor/complaints.html'">Lifecycle Manager</li>
+                <li onclick="location.href='/supervisor/workers.html'">Manage Workers</li>
+                <li onclick="location.href='/supervisor/notices.html'">Notices</li>
+                <li class="active" onclick="location.href='/supervisor/reports.html'">Reports</li>
+            </ul>
+            <div class="sidebar-logout" onclick="logout()">Logout</div>
+        </div>
+
+        <div class="content">
+            <div class="topbar">
+                <div style="display: flex; align-items: center; gap: 20px;">
+                    <button onclick="location.href='/supervisor/reports.html'" class="back-btn">
+                        <span>←</span> Back to Reports
+                    </button>
+                    <div>
+                        <h2 style="margin:0;">Full Complaint Register</h2>
+                        <p style="margin:4px 0 0; color:var(--slate-600); font-size:14px;">Comprehensive historical audit of all reported issues</p>
+                    </div>
+                </div>
+                <div id="statsHeader" style="display: flex; gap: 30px;">
+                    <!-- Stats populated by JS -->
+                </div>
+            </div>
+
+            <div class="container">
+                <div class="list-panel">
+                    <div class="search-bar">
+                        <input type="text" id="searchInput" placeholder="Search by title, room, or student name..." oninput="handleSearch()">
+                        <select id="statusFilter" onchange="handleSearch()">
+                            <option value="all">All Statuses</option>
+                            <option value="Pending">Pending</option>
+                            <option value="In Progress">In Progress</option>
+                            <option value="Resolved">Resolved</option>
+                            <option value="Awaiting Approval">Awaiting Approval</option>
+                        </select>
+                    </div>
+                    <div class="list-container" id="complaintList">
+                        <div class="empty-state">Loading complaints...</div>
+                    </div>
+                </div>
+
+                <div class="detail-panel" id="detailPanel">
+                    <div class="empty-state">
+                        <div style="font-size: 48px; margin-bottom: 20px; opacity: 0.3;">📋</div>
+                        <h3>No Selection</h3>
+                        <p>Select a complaint from the list to view its full history and details.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let allComplaints = [];
+        let filteredComplaints = [];
+        let workers = [];
+        let selectedId = null;
+
+        async function loadData() {
+            const [complaintsData, workersData] = await Promise.all([
+                apiCall('complaints/', 'GET'),
+                apiCall('workers/', 'GET')
+            ]);
+            
+            if (complaintsData) {
+                allComplaints = complaintsData;
+                workers = workersData || [];
+                filteredComplaints = [...allComplaints];
+                renderList();
+                renderStats();
+            }
+        }
+
+        function renderStats() {
+            const total = allComplaints.length;
+            const resolved = allComplaints.filter(c => c.status === 'Resolved').length;
+            const active = total - resolved;
+            
+            document.getElementById('statsHeader').innerHTML = `
+                <div style="text-align:right; border-right: 1px solid var(--slate-100); padding-right: 30px;">
+                    <div style="font-size:24px; font-weight:800; color:var(--slate-700);">${total}</div>
+                    <div style="font-size:10px; color:var(--slate-600); text-transform:uppercase; font-weight:700;">Records</div>
+                </div>
+                <div style="text-align:right; border-right: 1px solid var(--slate-100); padding-right: 30px;">
+                    <div style="font-size:24px; font-weight:800; color:var(--danger);">${active}</div>
+                    <div style="font-size:10px; color:var(--slate-600); text-transform:uppercase; font-weight:700;">Active</div>
+                </div>
+                <div style="text-align:right;">
+                    <div style="font-size:24px; font-weight:800; color:var(--success);">${resolved}</div>
+                    <div style="font-size:10px; color:var(--slate-600); text-transform:uppercase; font-weight:700;">Resolved</div>
+                </div>
+            `;
+        }
+
+        function handleSearch() {
+            const query = document.getElementById('searchInput').value.toLowerCase();
+            const status = document.getElementById('statusFilter').value;
+            
+            filteredComplaints = allComplaints.filter(c => {
+                const matchesSearch = c.title.toLowerCase().includes(query) || 
+                                    c.room.toLowerCase().includes(query) || 
+                                    (c.student_name && c.student_name.toLowerCase().includes(query)) ||
+                                    (`#CMP-${c.id}`).toLowerCase().includes(query);
+                const matchesStatus = status === 'all' || c.status === status;
+                return matchesSearch && matchesStatus;
+            });
+            renderList();
+        }
+
+        function renderList() {
+            const container = document.getElementById('complaintList');
+            if (filteredComplaints.length === 0) {
+                container.innerHTML = '<div class="empty-state">No complaints found matching your filters.</div>';
+                return;
+            }
+
+            container.innerHTML = filteredComplaints.slice().reverse().map(c => `
+                <div class="complaint-item ${selectedId === c.id ? 'active' : ''}" onclick="selectComplaint(${c.id})">
+                    <div class="priority-indicator" style="background:${getPriorityColor(c.priority)}"></div>
+                    <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:10px;">
+                        <span style="font-size:11px; color:var(--slate-600); font-weight:700;">#CMP-${c.id}</span>
+                        <span class="status-pill" style="background:${getStatusBg(c.status)}; color:${getStatusColor(c.status)}">${c.status}</span>
+                    </div>
+                    <h4 style="margin:0 0 6px; font-size:15px; color:var(--slate-700); font-weight:700;">${c.title}</h4>
+                    <p style="margin:0; font-size:13px; color:var(--slate-600);">${c.room}</p>
+                    <div style="margin-top:15px; display:flex; justify-content:space-between; font-size:11px; color:var(--slate-600); font-weight:600;">
+                        <span>🗓️ ${new Date(c.created_at).toLocaleDateString()}</span>
+                        <span>🏷️ ${c.category || 'General'}</span>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function selectComplaint(id) {
+            selectedId = id;
+            renderList();
+            const c = allComplaints.find(x => x.id === id);
+            const panel = document.getElementById('detailPanel');
+            
+            if (!c) return;
+
+            const dateStr = new Date(c.created_at).toLocaleString();
+            const updatedStr = c.updated_at ? new Date(c.updated_at).toLocaleString() : 'N/A';
+
+            panel.innerHTML = `
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:25px; padding-bottom:15px; border-bottom:1px solid var(--slate-100);">
+                    <h3 style="margin:0; font-size:18px;">Complaint Details</h3>
+                    <span class="status-pill" style="background:${getStatusBg(c.status)}; color:${getStatusColor(c.status)}">${c.status}</span>
+                </div>
+
+                <div class="detail-section">
+                    <label>Reference #</label>
+                    <div style="font-weight:700; color:var(--primary);">#CMP-${c.id}</div>
+                </div>
+
+                <div class="detail-section">
+                    <label>Title</label>
+                    <div style="font-size:18px; font-weight:800; color:var(--slate-700); margin-top:4px;">${c.title}</div>
+                </div>
+
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:20px;" class="detail-section">
+                    <div>
+                        <label>Room / Location</label>
+                        <div style="font-weight:700; color:var(--slate-700);">${c.room}</div>
+                    </div>
+                    <div>
+                        <label>Category</label>
+                        <div style="font-weight:700; color:var(--slate-700);">${c.category || 'General'}</div>
+                    </div>
+                </div>
+
+                <div class="detail-section">
+                    <label>Priority Level</label>
+                    <div style="display:flex; align-items:center; gap:8px; margin-top:4px; font-weight:700; color:${getPriorityColor(c.priority)}">
+                        <span style="width:10px; height:10px; border-radius:50%; background:${getPriorityColor(c.priority)}"></span>
+                        ${c.priority} Priority
+                    </div>
+                </div>
+
+                <div class="detail-section">
+                    <label>Description from Student</label>
+                    <div style="font-size:14px; color:var(--slate-700); line-height:1.6; margin-top:8px; background:var(--slate-50); padding:15px; border-radius:10px; border:1px solid var(--slate-100);">
+                        ${c.description}
+                    </div>
+                </div>
+
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:20px;" class="detail-section">
+                    <div>
+                        <label>Reported By</label>
+                        <div style="font-weight:700; color:var(--primary);">${c.is_anonymous ? '👤 Anonymous' : (c.student_name || '—')}</div>
+                    </div>
+                    <div>
+                        <label>Assigned Staff</label>
+                        <div style="font-weight:700;">${c.assigned_worker_name || 'Not assigned'}</div>
+                    </div>
+                </div>
+
+                <div class="detail-section" style="border-bottom:none;">
+                    <label>Audit Timeline</label>
+                    <div style="font-size:13px; margin-top:12px; position:relative; padding-left:20px;">
+                        <div style="position:absolute; left:4px; top:5px; bottom:5px; width:2px; background:var(--slate-100);"></div>
+                        
+                        <div style="margin-bottom:15px; position:relative;">
+                            <div style="position:absolute; left:-19px; top:4px; width:8px; height:8px; background:var(--primary); border-radius:50%;"></div>
+                            <div style="font-weight:700; color:var(--slate-700);">Reported</div>
+                            <div style="color:var(--slate-600); font-size:12px;">${dateStr}</div>
+                        </div>
+
+                        ${c.status !== 'Pending' ? `
+                        <div style="margin-bottom:15px; position:relative;">
+                            <div style="position:absolute; left:-19px; top:4px; width:8px; height:8px; background:var(--warning); border-radius:50%;"></div>
+                            <div style="font-weight:700; color:var(--slate-700);">Processing</div>
+                            <div style="color:var(--slate-600); font-size:12px;">Assigned to ${c.assigned_worker_name || 'Staff member'}</div>
+                        </div>` : ''}
+
+                        ${c.status === 'Resolved' ? `
+                        <div style="position:relative;">
+                            <div style="position:absolute; left:-19px; top:4px; width:8px; height:8px; background:var(--success); border-radius:50%;"></div>
+                            <div style="font-weight:700; color:var(--slate-700);">Resolved</div>
+                            <div style="color:var(--slate-600); font-size:12px;">Work completed at ${updatedStr}</div>
+                        </div>` : ''}
+                    </div>
+                </div>
+
+                ${c.resolution_proof ? `
+                    <div style="background:#f0fdf4; padding:20px; border-radius:12px; border:1px solid #bbf7d0; margin-top:10px;">
+                        <label style="color:#166534; margin-bottom:10px; display:block;">📸 Resolution Evidence</label>
+                        ${c.resolution_proof.startsWith('data:image/') 
+                            ? `<img src="${c.resolution_proof}" style="width:100%; border-radius:8px; box-shadow:0 4px 12px rgba(0,0,0,0.1); cursor:pointer;" onclick="window.open(this.src)">`
+                            : `<div style="font-size:13px; color:#166534; line-height:1.5;">${c.resolution_proof}</div>`
+                        }
+                    </div>
+                ` : ''}
+
+                ${c.feedback_rating ? `
+                    <div style="background:#fffbeb; padding:20px; border-radius:12px; border:1px solid #fde68a; margin-top:20px;">
+                        <label style="color:#d97706; margin-bottom:10px; display:block;">⭐ Student Feedback</label>
+                        <div style="font-size:18px; color:#d97706; margin-bottom:8px;">${'★'.repeat(c.feedback_rating)}${'☆'.repeat(5-c.feedback_rating)}</div>
+                        <p style="margin:0; font-size:13px; color:#92400e; font-style:italic; line-height:1.5;">"${c.feedback_comment || 'The student did not leave a comment.'}"</p>
+                    </div>
+                ` : ''}
+
+                ${c.status !== 'Resolved' ? `
+                    <button class="btn-lifecycle" onclick="location.href='/supervisor/complaints.html'">
+                         ⚡ Manage in Lifecycle Manager
+                    </button>
+                ` : ''}
+            `;
+        }
+
+        function getPriorityColor(p) {
+            if (p === 'High') return 'var(--danger)';
+            if (p === 'Medium') return 'var(--warning)';
+            return 'var(--success)';
+        }
+
+        function getStatusBg(s) {
+            if (s === 'Pending') return '#fef3c7';
+            if (s === 'In Progress') return '#dbeafe';
+            if (s === 'Resolved') return '#dcfce7';
+            if (s === 'Awaiting Approval') return '#fff4e5';
+            return '#f1f5f9';
+        }
+
+        function getStatusColor(s) {
+            if (s === 'Pending') return '#92400e';
+            if (s === 'In Progress') return '#1e40af';
+            if (s === 'Resolved') return '#166534';
+            if (s === 'Awaiting Approval') return '#8a5e3b';
+            return '#475569';
+        }
+
+        window.onload = async () => {
+            await loadData();
+            syncSidebarSettings();
+        };
+    </script>
+</body>
+</html>

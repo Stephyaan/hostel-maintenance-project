@@ -21,8 +21,8 @@ The following test users are available:
 
 | Username | Password | Role | Details |
 |----------|----------|------|---------|
-| `student1` | `password123` | Student | Room 204, Block A |
-| `supervisor1` | `password123` | Supervisor | - |
+| `student1` | `pass123` | Student | Room 204, Block A |
+| `supervisor1` | `pass123` | Supervisor | - |
 | `admin` | `admin123` | Admin | Full admin access |
 
 ### 5. **API Endpoints Available**

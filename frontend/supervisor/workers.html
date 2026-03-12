@@ -2,9 +2,10 @@
 <html>
 
 <head>
-    <title>Manage Workers | Supervisor</title>
-    <link rel="stylesheet" href="../static/css/style.css">
-    <script src="../static/js/main.js"></script>
+    <meta charset="UTF-8">
+    <title>Manage Workers | HostelHub</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <script src="/static/js/main.js"></script>
     <style>
         :root {
             --primary: #2b7cff;
@@ -57,6 +58,22 @@
 
         .worker-card:hover::before {
             opacity: 1;
+        }
+
+        .worker-card.frozen {
+            filter: grayscale(1);
+            opacity: 0.7;
+            background: var(--slate-50);
+            border-style: dashed;
+        }
+
+        .worker-card.frozen:hover {
+            transform: none;
+            box-shadow: none;
+        }
+
+        .worker-card.frozen::before {
+            background: var(--slate-600);
         }
 
         .worker-header {
@@ -287,18 +304,18 @@
 
 <body>
 
-    <div class="app">
+    <div class="app supervisor-app">
 
         <!-- Sidebar -->
         <div class="sidebar">
             <h2>HostelHub</h2>
             <p style="color:#777;font-size:14px;">Supervisor Portal</p>
             <ul>
-                <li onclick="location.href='dashboard.html'">Dashboard</li>
-                <li onclick="location.href='complaints.html'">Lifecycle Manager</li>
-                <li class="active">Manage Workers</li>
-                <li onclick="location.href='notices.html'">Notices</li>
-                <li onclick="location.href='reports.html'">Reports</li>
+                <li onclick="location.href='/supervisor/dashboard.html'">Dashboard</li>
+                <li onclick="location.href='/supervisor/complaints.html'">Lifecycle Manager</li>
+                <li class="active" onclick="location.href='/supervisor/workers.html'">Manage Workers</li>
+                <li onclick="location.href='/supervisor/notices.html'">Notices</li>
+                <li onclick="location.href='/supervisor/reports.html'">Reports</li>
             </ul>
             <div class="sidebar-logout" onclick="logout()">
                 Logout
@@ -314,7 +331,7 @@
                 </div>
                 <div style="display: flex; gap: 10px;">
                     <button class="btn-outline">📊 Export Stats</button>
-                    <button class="btn" onclick="openAddWorkerModal()">+ Add Staff
+                    <button id="btnAddWorker" class="btn" onclick="openAddWorkerModal()">+ Add Staff
                         Info</button>
                 </div>
             </div>
@@ -350,11 +367,9 @@
 
             <label>Primary Role/Specialization</label>
             <select id="newWorkerRole">
-                <option value="Plumber">Plumber</option>
-                <option value="Electrician">Electrician</option>
-                <option value="Carpenter">Carpenter</option>
-                <option value="Mason">Mason</option>
+                <option value="">Loading categories...</option>
             </select>
+
 
             <div id="registrationNotice"
                 style="background: #fdf2f2; padding: 12px; border-radius: 8px; border: 1px solid #fecaca; margin: 15px 0;">
@@ -394,6 +409,13 @@
                 <!-- Tasks populated by JS -->
             </div>
         </div>
+        <div id="panel-admin-actions"
+            style="padding: 20px; border-top: 1px solid var(--slate-100); background: var(--slate-50);">
+            <button id="toggleActiveBtn" class="btn-sm"
+                style="width: 100%; height: 40px; border-radius: 8px; font-weight: 700;" onclick="toggleWorkerActive()">
+                Remove from Roster
+            </button>
+        </div>
     </div>
     <!-- Reassignment Modal -->
     <div id="reassignModal" class="modal">
@@ -428,10 +450,38 @@
     </div>
 
     <script>
-        let workerData = [];          // live from API
-        let allComplaints = [];       // live from API — for per-worker task view
+        let workerData = [];
+        let allComplaints = [];
         let currentPanelWorkerId = null;
         let currentPanelTab = 'pending';
+        let approvalNeeded = false; // Based on setting ON = true
+        let hasWorkerAccess = true; // Based on worker_management_access
+
+        function applySettings(settings) {
+            if (!settings) return;
+            hasWorkerAccess = settings.find(s => s.key === 'worker_management_access')?.value !== false;
+            const approval = settings.find(s => s.key === 'autonomous_staff_registration')?.value;
+
+            approvalNeeded = (approval === true); // ON means NEED approval
+
+            // If access is OFF, hide action buttons
+            const addBtn = document.getElementById('btnAddWorker');
+            if (addBtn) addBtn.style.display = hasWorkerAccess ? 'block' : 'none';
+
+            // Update registration notice
+            const noticeText = document.getElementById('regNoticeText');
+            if (approvalNeeded) {
+                noticeText.innerHTML = '<b>Note:</b> Adding a worker requires Admin approval. Once submitted, it will be sent to the Admin dashboard for verification.';
+                noticeText.parentElement.style.background = '#fdf2f2';
+                noticeText.parentElement.style.borderColor = '#fecaca';
+                noticeText.style.color = '#991b1b';
+            } else {
+                noticeText.innerHTML = '<b>Direct Registration:</b> Admin approval is currently disabled. Adding a worker will publish them directly to the staff list.';
+                noticeText.parentElement.style.background = '#f0fdf4';
+                noticeText.parentElement.style.borderColor = '#bbf7d0';
+                noticeText.style.color = '#166534';
+            }
+        }
 
         // ── Skill → emoji avatar ──────────────────────────────────────────
         function skillAvatar(skill) {
@@ -446,21 +496,34 @@
 
         // ── Load data from API ────────────────────────────────────────────
         async function loadData() {
-            const [workers, complaints] = await Promise.all([
+            const [workers, complaints, settings] = await Promise.all([
                 apiCall('workers/', 'GET'),
-                apiCall('complaints/', 'GET')
+                apiCall('complaints/', 'GET'),
+                apiCall('settings/', 'GET')
             ]);
             workerData = workers || [];
             allComplaints = complaints || [];
+            applySettings(settings);
             renderWorkers();
         }
 
         // ── Open/close Add Worker modal ───────────────────────────────────
-        function openAddWorkerModal() {
+        async function openAddWorkerModal() {
+            const roleSelect = document.getElementById('newWorkerRole');
+            roleSelect.innerHTML = '<option value="">Loading categories...</option>';
+            const categories = await apiCall('categories/', 'GET');
+
+            if (categories && categories.length > 0) {
+                roleSelect.innerHTML = categories.map(cat => `<option value="${cat.name}">${cat.name}</option>`).join('');
+            } else {
+                roleSelect.innerHTML = '<option value="Electrician">Electrician</option>';
+            }
+
             document.getElementById('addWorkerModal').style.display = 'flex';
         }
         function closeAddWorkerModal() {
             document.getElementById('addWorkerModal').style.display = 'none';
+            document.getElementById('newWorkerName').value = ''; // Clear input on close
         }
 
         // ── Add worker via API ────────────────────────────────────────────
@@ -471,26 +534,25 @@
 
             if (!name) { alert('Please enter a name'); return; }
 
-            // Fetch settings to see if it will be auto-approved
-            const settings = await apiCall('settings/', 'GET');
-            const autoReg = settings.find(s => s.key === 'autonomous_staff_registration')?.value !== false;
+            // Backend will use settings, we just pass is_approved for frontend instant sync if it's direct
+            const isApproved = !approvalNeeded;
 
             const created = await apiCall('workers/', 'POST', {
                 name: name,
                 skill: skill,
                 phone: phone,
-                is_available: true
+                is_available: true,
+                is_approved: isApproved
             });
 
             if (created) {
-                if (autoReg) {
+                if (isApproved) {
                     alert(`${name} has been added directly to the staff list.`);
                     workerData.push(created);
                 } else {
                     alert(`Request sent! ${name} will appear once the Admin approves the registration.`);
                 }
                 closeAddWorkerModal();
-                document.getElementById('newWorkerName').value = '';
                 renderWorkers();
             }
         }
@@ -498,18 +560,37 @@
         // ── Render worker grid ────────────────────────────────────────────
         function renderWorkers() {
             const grid = document.getElementById('workerGrid');
+            const activeWorkers = workerData.filter(w => w.is_approved !== false);
+            const pendingWorkers = workerData.filter(w => w.is_approved === false);
 
-            if (workerData.length === 0) {
+            if (activeWorkers.length === 0) {
                 grid.innerHTML = `<div style="grid-column:1/-1; text-align:center; padding:60px; color:#94a3b8;">
-                    No workers registered yet. Click <b>+ Add Staff Info</b> to add one.
-                </div>`;
-                return;
+                        No workers registered yet. Click <b>+ Add Staff Info</b> to add one.
+                    </div>`;
+            } else {
+                grid.innerHTML = activeWorkers.map(w => generateWorkerHTML(w)).join('');
             }
 
-            grid.innerHTML = workerData.map(w => generateWorkerHTML(w)).join('');
-
-            // Hide the pending section (we no longer use localStorage pending)
-            document.getElementById('pendingSection').style.display = 'none';
+            // Show/Hide pending section
+            const pendingSection = document.getElementById('pendingSection');
+            const pendingGrid = document.getElementById('pendingGrid');
+            if (pendingWorkers.length > 0) {
+                pendingSection.style.display = 'block';
+                pendingGrid.innerHTML = pendingWorkers.map(w => `
+                        <div class="worker-card" style="cursor:default; border-style: dashed;">
+                            <div class="worker-header">
+                                <div class="worker-avatar">${skillAvatar(w.skill)}</div>
+                                <div class="worker-info">
+                                    <h3>${w.name}</h3>
+                                    <p>${w.skill}</p>
+                                </div>
+                            </div>
+                            <div style="font-size:11px; color:var(--warning); font-weight:700; text-align:center;">PENDING APPROVAL</div>
+                        </div>
+                    `).join('');
+            } else {
+                pendingSection.style.display = 'none';
+            }
         }
 
         function generateWorkerHTML(w) {
@@ -520,12 +601,17 @@
             const avatar = skillAvatar(w.skill);
             const statusColor = w.is_available ? 'var(--success)' : '#cbd5e1';
             const statusText = w.is_available ? 'Available' : 'Busy';
+            const isActive = w.is_active !== false;
 
             return `
-                <div class="worker-card" onclick="openWorkerPanel(${w.id})">
+                <div class="worker-card ${isActive ? '' : 'frozen'}" onclick="openWorkerPanel(${w.id})">
                     <div style="position:absolute; top:15px; right:15px; display:flex; align-items:center; gap:5px;">
-                        <span style="width:8px; height:8px; border-radius:50%; background:${statusColor}"></span>
-                        <span style="font-size:10px; color:#64748b; font-weight:600;">${statusText}</span>
+                        ${isActive ? `
+                            <span style="width:8px; height:8px; border-radius:50%; background:${statusColor}"></span>
+                            <span style="font-size:10px; color:#64748b; font-weight:600;">${statusText}</span>
+                        ` : `
+                            <span style="font-size:10px; color:var(--danger); font-weight:800; background: #fee2e2; padding: 2px 6px; border-radius: 4px;">FROZEN / DEACTIVATED</span>
+                        `}
                     </div>
                     <div class="worker-header">
                         <div class="worker-avatar">${avatar}</div>
@@ -590,9 +676,18 @@
             const taskContainer = document.getElementById('taskDetails');
 
             // Get complaints assigned to this worker
-            const assigned = allComplaints.filter(c => c.assigned_worker === w.id);
+            const assigned = (allComplaints || []).filter(c => c.assigned_worker === w.id);
             const pending = assigned.filter(c => c.status !== 'Resolved');
             const resolved = assigned.filter(c => c.status === 'Resolved');
+
+            // Admin actions setup
+            const activeBtn = document.getElementById('toggleActiveBtn');
+            const isActive = w.is_active !== false;
+            activeBtn.innerText = isActive ? 'Remove from Roster' : 'Reactivate Staff';
+            activeBtn.style.background = isActive ? 'var(--danger)' : 'var(--success)';
+            activeBtn.style.color = 'white';
+            activeBtn.style.border = 'none';
+            activeBtn.style.display = hasWorkerAccess ? 'block' : 'none';
 
             if (currentPanelTab === 'pending') {
                 heading.innerText = `Current Pending Workload (${pending.length})`;
@@ -640,6 +735,27 @@
                             </div>
                         </div>`;
                 }).join('');
+            }
+        }
+
+        async function toggleWorkerActive() {
+            const w = workerData.find(x => x.id === currentPanelWorkerId);
+            if (!w) return;
+
+            const newState = !(w.is_active !== false);
+            const confirmMsg = newState
+                ? "Reactivate this staff member and add them back to the active roster?"
+                : "Are you sure you want to remove this staff member from the active roster? They will no longer appear in new assignments, but their history will be preserved.";
+
+            if (!confirm(confirmMsg)) return;
+
+            const res = await apiCall(`workers/${w.id}/`, 'PATCH', { is_active: newState });
+            if (res) {
+                // Update local data
+                w.is_active = newState;
+                renderWorkers();
+                renderPanelContent();
+                alert(`Staff member ${newState ? 'reactivated' : 'removed from active roster'}.`);
             }
         }
 

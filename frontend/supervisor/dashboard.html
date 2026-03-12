@@ -2,9 +2,10 @@
 <html>
 
 <head>
-    <title>Supervisor Dashboard</title>
-    <link rel="stylesheet" href="../static/css/style.css">
-    <script src="../static/js/main.js"></script>
+    <meta charset="UTF-8">
+    <title>Dashboard | HostelHub</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <script src="/static/js/main.js"></script>
 
     <style>
         .dashboard-grid {
@@ -127,60 +128,197 @@
             color: #64748b;
         }
 
-        .action-mini {
+        /* Quick Links Row */
+        .quick-links {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .quick-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 14px;
             background: #fff;
-            padding: 15px;
-            border-radius: 12px;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
             cursor: pointer;
             transition: 0.2s;
-            border: 1px solid transparent;
-            margin-bottom: 12px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            font-size: 13px;
+            font-weight: 600;
+            color: #1e293b;
+            text-decoration: none;
+            white-space: nowrap;
         }
 
-        .action-mini:hover {
+        .quick-link:hover {
             border-color: #2b7cff;
             background: #f0f7ff;
+            color: #2b7cff;
         }
 
-        .action-mini b {
-            display: block;
-            font-size: 14px;
-            margin-bottom: 4px;
-        }
-
-        .action-mini span {
+        .ql-badge {
+            background: #fee2e2;
+            color: #ef4444;
+            padding: 2px 7px;
+            border-radius: 10px;
             font-size: 11px;
+            font-weight: 700;
+            min-width: 14px;
+            text-align: center;
+        }
+
+        .ql-badge.blue { background: #e0f2fe; color: #0369a1; }
+        .ql-badge.amber { background: #fffbeb; color: #92400e; }
+        .ql-badge.green { background: #ecfdf5; color: #065f46; }
+
+        /* ── Notification Bell ─────────────── */
+        .notif-bell {
+            position: relative;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 12px;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            background: #fff;
+            font-size: 18px;
+            transition: 0.18s;
+        }
+
+        .notif-bell:hover {
+            background: #f8fafc;
+        }
+
+        .notif-bell .bell-badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: #ef4444;
+            color: #fff;
+            font-size: 10px;
+            font-weight: 700;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            display: none;
+        }
+
+        /* ── Notification Card items ───────── */
+        .notif-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            padding: 11px 0;
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        .notif-item:last-child {
+            border-bottom: none;
+        }
+
+        .notif-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #ef4444;
+            flex-shrink: 0;
+            margin-top: 5px;
+        }
+
+        .notif-dot.read {
+            background: #e2e8f0;
+        }
+
+        .notif-dot.done {
+            background: #10b981;
+        }
+
+        .notif-title {
+            font-weight: 600;
+            font-size: 13px;
+            color: #1e293b;
+        }
+
+        .notif-msg {
+            font-size: 11px;
+            color: #64748b;
+            margin-top: 2px;
+            line-height: 1.4;
+        }
+
+        .notif-time {
+            font-size: 10px;
+            color: #94a3b8;
+            margin-top: 3px;
+        }
+
+        .notif-actions {
+            display: flex;
+            gap: 5px;
+            margin-top: 7px;
+            flex-wrap: wrap;
+        }
+
+        .notif-done-btn {
+            padding: 3px 9px;
+            border: none;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 600;
+            cursor: pointer;
+            background: #ecfdf5;
+            color: #10b981;
+            transition: 0.15s;
+        }
+
+        .notif-done-btn:hover {
+            background: #10b981;
+            color: #fff;
+        }
+
+        .notif-ack-btn {
+            padding: 3px 9px;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 600;
+            cursor: pointer;
+            background: #fff;
             color: #64748b;
         }
 
-        .badge-count {
-            float: right;
-            background: #fee2e2;
-            color: #ef4444;
-            padding: 2px 6px;
-            border-radius: 4px;
-            font-size: 10px;
-            font-weight: 700;
+        .notif-ack-btn:hover {
+            background: #f1f5f9;
         }
-    </style>
+
+        .notif-done-label {
+            font-size: 11px;
+            color: #10b981;
+            font-weight: 600;
+        }
     </style>
 </head>
 
 <body>
 
-    <div class="app">
+    <div class="app supervisor-app">
 
         <!-- Sidebar -->
         <div class="sidebar">
             <h2>HostelHub</h2>
             <p style="color:#777;font-size:14px;">Supervisor Portal</p>
             <ul>
-                <li class="active">Dashboard</li>
-                <li onclick="location.href='complaints.html'">Lifecycle Manager</li>
-                <li onclick="location.href='workers.html'">Manage Workers</li>
-                <li onclick="location.href='notices.html'">Notices</li>
-                <li onclick="location.href='reports.html'">Reports</li>
+                <li class="active" onclick="location.href='/supervisor/dashboard.html'">Dashboard</li>
+                <li onclick="location.href='/supervisor/complaints.html'">Lifecycle Manager</li>
+                <li onclick="location.href='/supervisor/workers.html'">Manage Workers</li>
+                <li onclick="location.href='/supervisor/notices.html'">Notices</li>
+                <li onclick="location.href='/supervisor/reports.html'">Reports</li>
             </ul>
             <div class="sidebar-logout" onclick="logout()">
                 Logout
@@ -193,33 +331,37 @@
             <!-- Header -->
             <div class="topbar">
                 <div>
-                    <h2>Maintenance Supervisor 👷</h2>
-                    <p style="color:#666;">Today’s task overview</p>
+                    <h2 id="welcomeTitle">Maintenance Supervisor 👷</h2>
+                    <p style="color:#666;" id="welcomeSub">Today's task overview</p>
                 </div>
-
+                <div class="notif-bell" onclick="location.href='/supervisor/maintenance_alerts.html'"
+                    title="Go to Maintenance Alerts" style="cursor:pointer;" id="notifBell">
+                    🔔 <span style="font-size:13px;font-weight:600;color:#1e293b;">Maintenance Alerts</span>
+                    <span class="bell-badge" id="bellBadge">0</span>
+                </div>
             </div>
 
             <!-- SUMMARY BOXES -->
             <div class="stats-row">
                 <div class="stat-box total">
-                    <p>Total Tasks</p>
-                    <h2 id="totalCount">0</h2>
-                    <span>Assigned to me</span>
+                    <p>Total Complaints</p>
+                    <h2 id="totalCount">—</h2>
+                    <span>All System Records</span>
                 </div>
                 <div class="stat-box pending">
                     <p>Pending</p>
-                    <h2 id="pendingCount">0</h2>
-                    <span>Urgent Attention</span>
+                    <h2 id="pendingCount">—</h2>
+                    <span>Needs Attention</span>
                 </div>
                 <div class="stat-box progress">
                     <p>In Progress</p>
-                    <h2 id="progressCount">0</h2>
-                    <span>Technicians Active</span>
+                    <h2 id="progressCount">—</h2>
+                    <span>Workers Active</span>
                 </div>
                 <div class="stat-box resolved">
-                    <p>Completed</p>
-                    <h2 id="completedCount">0</h2>
-                    <span>This Month</span>
+                    <p>Resolved</p>
+                    <h2 id="completedCount">—</h2>
+                    <span>Closed Issues</span>
                 </div>
             </div>
 
@@ -228,58 +370,39 @@
                 <!-- LEFT COLUMN: PERFORMANCE & ANALYTICS -->
                 <div class="main-stats">
 
+                    <!-- Team Efficiency (computed from real data) -->
                     <div class="metric-card">
                         <div class="card-header">
                             <h3>⚡ Team Efficiency</h3>
-                            <span style="font-size: 12px; color: #2b7cff; cursor: pointer;">Last 30 Days ▾</span>
+                            <span style="font-size: 12px; color: #2b7cff;">Live Data</span>
                         </div>
                         <div class="efficiency-grid">
                             <div class="efficiency-box">
-                                <b>1.8 Days</b>
-                                <span>Avg. Turnaround</span>
+                                <b id="avgTurnaround">—</b>
+                                <span>Avg. Resolution</span>
                             </div>
                             <div class="efficiency-box">
-                                <b>92%</b>
-                                <span>On-Time Rate</span>
+                                <b id="resolveRate">—</b>
+                                <span>Resolution Rate</span>
                             </div>
                             <div class="efficiency-box">
-                                <b>6</b>
-                                <span>Active Technicians</span>
+                                <b id="activeWorkers">—</b>
+                                <span>Active Workers</span>
                             </div>
                             <div class="efficiency-box">
-                                <b>4.5/5</b>
-                                <span>Quality Score</span>
+                                <b id="avgRating">—</b>
+                                <span>Avg. Feedback</span>
                             </div>
                         </div>
                     </div>
 
+                    <!-- Category Breakdown (computed from real complaint data) -->
                     <div class="metric-card">
                         <div class="card-header">
-                            <h3>📁 Request Category Breakdown</h3>
+                            <h3>📁 Complaint Category Breakdown</h3>
                         </div>
-                        <div class="heatmap-item">
-                            <div class="heatmap-label"><span>Plumbing</span><span>40%</span></div>
-                            <div class="bar-bg">
-                                <div class="bar-fill" style="width: 40%; background: #ef4444;"></div>
-                            </div>
-                        </div>
-                        <div class="heatmap-item">
-                            <div class="heatmap-label"><span>Electrical</span><span>35%</span></div>
-                            <div class="bar-bg">
-                                <div class="bar-fill" style="width: 35%; background: #f59e0b;"></div>
-                            </div>
-                        </div>
-                        <div class="heatmap-item">
-                            <div class="heatmap-label"><span>Carpentry</span><span>15%</span></div>
-                            <div class="bar-bg">
-                                <div class="bar-fill" style="width: 15%; background: #3b82f6;"></div>
-                            </div>
-                        </div>
-                        <div class="heatmap-item" style="margin-bottom: 0;">
-                            <div class="heatmap-label"><span>Others</span><span>10%</span></div>
-                            <div class="bar-bg">
-                                <div class="bar-fill" style="width: 10%; background: #64748b;"></div>
-                            </div>
+                        <div id="categoryBreakdown">
+                            <p style="color:#94a3b8; font-style:italic; text-align:center;">Loading...</p>
                         </div>
                     </div>
 
@@ -288,109 +411,261 @@
                 <!-- RIGHT COLUMN: PROACTIVE PLANNING -->
                 <div class="side-planning">
 
+                    <!-- Today's Scheduled Tasks (from DB) -->
                     <div class="metric-card">
                         <div class="card-header">
-                            <h3>📅 Upcoming Tasks</h3>
+                            <h3>📅 Today's Tasks</h3>
+                            <span style="font-size:11px; color:#94a3b8; font-weight:600;" id="todayDate"></span>
                         </div>
-
-                        <div class="task-item">
-                            <div class="task-date">
-                                <b>18</b>
-                                <span>Feb</span>
-                            </div>
-                            <div class="task-info">
-                                <b>Water Tank Cleaning</b>
-                                <span>Block B · 09:00 AM</span>
-                            </div>
+                        <div id="upcomingTasks">
+                            <p style="color:#94a3b8; font-style:italic; text-align:center;">Loading...</p>
                         </div>
+                    </div>
 
-                        <div class="task-item">
-                            <div class="task-date">
-                                <b>20</b>
-                                <span>Feb</span>
-                            </div>
-                            <div class="task-info">
-                                <b>Fire Safety Drill</b>
-                                <span>All Blocks · 11:00 AM</span>
-                            </div>
+                    <!-- Worker Summary -->
+                    <div class="metric-card">
+                        <div class="card-header">
+                            <h3>👷 Worker Overview</h3>
                         </div>
-
-                        <div class="task-item" style="border: none;">
-                            <div class="task-date">
-                                <b>25</b>
-                                <span>Feb</span>
+                        <div class="efficiency-grid" id="workerSummary">
+                            <div class="efficiency-box">
+                                <b id="totalWorkers">—</b>
+                                <span>Total Workers</span>
                             </div>
-                            <div class="task-info">
-                                <b>Generator Maintenance</b>
-                                <span>Main Power House · 2:00 PM</span>
+                            <div class="efficiency-box">
+                                <b id="availableWorkers">—</b>
+                                <span>Available</span>
+                            </div>
+                            <div class="efficiency-box">
+                                <b id="approvedWorkers">—</b>
+                                <span>Approved</span>
+                            </div>
+                            <div class="efficiency-box">
+                                <b id="pendingApproval">—</b>
+                                <span>Pending Approval</span>
                             </div>
                         </div>
                     </div>
 
-                    <div class="metric-card" style="background: #f8fafc; border: 1px dashed #cbd5e1; box-shadow: none;">
-                        <div class="card-header" style="border: none; margin-bottom: 10px;">
-                            <h3 style="color: #475569;">Quick Actions</h3>
+                    <!-- Quick Actions (compact) -->
+                    <div class="metric-card" style="padding: 16px;">
+                        <div class="card-header" style="margin-bottom: 12px; padding-bottom: 8px;">
+                            <h3>⚡ Quick Access</h3>
                         </div>
-                        <div class="action-mini" onclick="location.href='complaints.html'">
-                            <span class="badge-count" id="newBadge">0</span>
-                            <b>Manage Requests</b>
-                            <span>Assign & Update Status</span>
-                        </div>
-                        <div class="action-mini" onclick="location.href='workers.html'">
-                            <b>Manage Workers</b>
-                            <span>Check Availability</span>
-                        </div>
-                        <div class="action-mini" onclick="location.href='notices.html'">
-                            <span class="badge-count" id="noticeBadge"
-                                style="background:#e0f2fe; color:#0369a1">0</span>
-                            <b>Notices</b>
-                            <span>View & Post Updates</span>
+                        <div class="quick-links">
+                            <a class="quick-link" href="complaints.html">📋 Requests <span class="ql-badge" id="newBadge">0</span></a>
+                            <a class="quick-link" href="workers.html">👷 Workers <span class="ql-badge amber" id="workerBadge">0</span></a>
+                            <a class="quick-link" href="notices.html">📢 Notices <span class="ql-badge blue" id="noticeBadge">0</span></a>
+                            <a class="quick-link" href="reports.html">📊 Reports</a>
                         </div>
                     </div>
 
                 </div>
 
             </div>
-
         </div>
-    </div>
 
-    <script>
-        window.onload = async function () {
-            // Show logged-in supervisor name
-            const user = JSON.parse(localStorage.getItem('user') || '{}');
-            if (user.username) {
-                document.querySelector('.topbar h2').innerText =
-                    `${user.first_name || user.username} 👷`;
-                document.querySelector('.topbar p').innerText = 'Today\'s task overview';
+        <script>
+            window.onload = async function () {
+                // ── 1. Show logged-in supervisor name ──
+                const user = JSON.parse(localStorage.getItem('user') || '{}');
+                if (user.username) {
+                    document.getElementById('welcomeTitle').innerText =
+                        `${user.first_name || user.username} 👷`;
+                }
+
+                // ── 2. Fetch ALL data in parallel ──
+                const [complaints, workers, notices, schedules, categories, notifications, health] = await Promise.all([
+                    apiCall('complaints/', 'GET'),
+                    apiCall('workers/', 'GET'),
+                    apiCall('notices/', 'GET'),
+                    apiCall('schedules/', 'GET'),
+                    apiCall('categories/', 'GET'),
+                    apiCall('schedule-notifications/', 'GET'),
+                    apiCall('system-health/', 'GET')
+                ]);
+
+                // ══════════════════════════════════════════════
+                // ── 3. STAT BOXES (from complaints) ──
+                // ══════════════════════════════════════════════
+                if (complaints) {
+                    const total = complaints.length;
+                    const pending = complaints.filter(c => c.status === 'Pending' || c.status === 'Awaiting Approval').length;
+                    const progress = complaints.filter(c => c.status === 'In Progress').length;
+                    const resolved = complaints.filter(c => c.status === 'Resolved').length;
+
+                    document.getElementById('totalCount').innerText = total;
+                    document.getElementById('pendingCount').innerText = pending;
+                    document.getElementById('progressCount').innerText = progress;
+                    document.getElementById('completedCount').innerText = resolved;
+                    document.getElementById('newBadge').innerText = pending;
+
+                    // ── TEAM EFFICIENCY (from Health API) ──
+                    if (health) {
+                        document.getElementById('avgTurnaround').innerText = health.avg_resolution_time || 'N/A';
+                        document.getElementById('resolveRate').innerText = health.operational_sla + '%';
+                        document.getElementById('avgRating').innerText = health.avg_feedback + '/5';
+                    }
+
+                    // ── 5. CATEGORY BREAKDOWN (using system-defined categories) ──
+                    const catContainer = document.getElementById('categoryBreakdown');
+                    const barColors = {
+                        'Plumbing': '#3b82f6',
+                        'Electrical': '#f59e0b',
+                        'Housekeeping': '#10b981',
+                        'Furniture': '#8b5cf6',
+                        'Carpentry': '#ec4899',
+                        'Mason': '#06b6d4',
+                        'Others': '#64748b'
+                    };
+                    const defaultColors = ['#ef4444','#f59e0b','#3b82f6','#10b981','#8b5cf6','#64748b','#ec4899','#06b6d4'];
+
+                    // Build category list from system-defined categories
+                    let categoryList = [];
+                    if (categories && categories.length > 0) {
+                        categoryList = categories.map(c => c.name);
+                    }
+
+                    // Count complaints per category
+                    const catCounts = {};
+                    categoryList.forEach(name => { catCounts[name] = 0; });
+                    let uncategorized = 0;
+
+                    complaints.forEach(c => {
+                        const cat = c.category;
+                        if (cat && catCounts.hasOwnProperty(cat)) {
+                            catCounts[cat]++;
+                        } else if (cat && cat !== 'null' && cat !== 'None') {
+                            // Category exists in complaint but not in system categories
+                            if (!catCounts[cat]) catCounts[cat] = 0;
+                            catCounts[cat]++;
+                        } else {
+                            uncategorized++;
+                        }
+                    });
+
+                    // Add uncategorized if any
+                    if (uncategorized > 0) {
+                        catCounts['Uncategorized'] = uncategorized;
+                    }
+
+                    // Sort: highest count first
+                    const sortedCats = Object.entries(catCounts).sort((a, b) => b[1] - a[1]);
+
+                    if (sortedCats.length > 0) {
+                        catContainer.innerHTML = sortedCats.map(([cat, count], i) => {
+                            const pct = total > 0 ? Math.round((count / total) * 100) : 0;
+                            const color = barColors[cat] || defaultColors[i % defaultColors.length];
+                            return `
+                                <div class="heatmap-item" ${i === sortedCats.length - 1 ? 'style="margin-bottom:0;"' : ''}>
+                                    <div class="heatmap-label"><span>${cat}</span><span>${count} (${pct}%)</span></div>
+                                    <div class="bar-bg"><div class="bar-fill" style="width:${Math.max(pct, 2)}%; background:${color};"></div></div>
+                                </div>`;
+                        }).join('');
+                    } else {
+                        catContainer.innerHTML = '<p style="color:#94a3b8; font-style:italic; text-align:center;">No categories defined</p>';
+                    }
+
+                }
+
+                // ══════════════════════════════════════════════
+                // ── 7. WORKER OVERVIEW (from workers API) ──
+                // ══════════════════════════════════════════════
+                if (workers) {
+                    const totalW = workers.length;
+                    const available = workers.filter(w => w.is_available).length;
+                    const approved = workers.filter(w => w.is_approved).length;
+                    const pendingW = workers.filter(w => !w.is_approved).length;
+
+                    document.getElementById('totalWorkers').innerText = totalW;
+                    document.getElementById('availableWorkers').innerText = available;
+                    document.getElementById('approvedWorkers').innerText = approved;
+                    document.getElementById('pendingApproval').innerText = pendingW;
+                    document.getElementById('workerBadge').innerText = totalW;
+
+                    // Also set Active Workers in efficiency section
+                    document.getElementById('activeWorkers').innerText = available;
+                }
+
+                // ══════════════════════════════════════════════
+                // ── 8. NOTICES BADGE ──
+                // ══════════════════════════════════════════════
+                if (notices) {
+                    document.getElementById('noticeBadge').innerText = notices.length;
+                }
+
+                // ══════════════════════════════════════════════
+                // ── 9. TODAY'S SCHEDULED TASKS (from schedules API) ──
+                // ══════════════════════════════════════════════
+                const today = new Date();
+                const todayStr = today.toISOString().split('T')[0];
+                const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+                const days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+
+                // Show today's date in header
+                document.getElementById('todayDate').innerText =
+                    `${days[today.getDay()]}, ${today.getDate()} ${months[today.getMonth()]} ${today.getFullYear()}`;
+
+                const tasksBox = document.getElementById('upcomingTasks');
+                if (schedules && schedules.length > 0) {
+                    // Filter: only today's tasks that are not done
+                    const todayTasks = schedules.filter(s => !s.is_done && s.date === todayStr);
+
+                    if (todayTasks.length > 0) {
+                        // Sort by time
+                        todayTasks.sort((a, b) => (a.time || '').localeCompare(b.time || ''));
+
+                        tasksBox.innerHTML = todayTasks.map((s, i) => {
+                            const timeStr = s.time
+                                ? new Date('1970-01-01T' + s.time).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})
+                                : 'All Day';
+                            const impColor = s.importance === 'high' ? '#ef4444'
+                                : s.importance === 'medium' ? '#f59e0b' : '#10b981';
+                            const impLabel = s.importance ? s.importance.charAt(0).toUpperCase() + s.importance.slice(1) : 'Low';
+                            const isLast = i === todayTasks.length - 1;
+                            return `
+                                <div class="task-item" ${isLast ? 'style="border:none;"' : ''}>
+                                    <div class="task-date" style="min-width:50px;">
+                                        <b style="font-size:13px;">${timeStr}</b>
+                                    </div>
+                                    <div class="task-info" style="flex:1;">
+                                        <b>${s.title}</b>
+                                        <span>${s.area || 'All Areas'}</span>
+                                    </div>
+                                    <span style="padding:3px 8px; border-radius:6px; font-size:10px; font-weight:700;
+                                        background:${impColor}15; color:${impColor};">${impLabel}</span>
+                                </div>`;
+                        }).join('');
+                    } else {
+                        tasksBox.innerHTML = `
+                            <div style="text-align:center; padding:20px 0;">
+                                <span style="font-size:28px;">✅</span>
+                                <p style="color:#94a3b8; font-size:13px; margin:8px 0 0;">All clear for today</p>
+                            </div>`;
+                    }
+                } else {
+                    tasksBox.innerHTML = `
+                        <div style="text-align:center; padding:20px 0;">
+                            <span style="font-size:28px;">📭</span>
+                            <p style="color:#94a3b8; font-size:13px; margin:8px 0 0;">No scheduled tasks</p>
+                        </div>`;
+                }
+
+                // ══════════════════════════════════════════════
+                // ── 10. NOTIFICATION BELL BADGE ──
+                // ══════════════════════════════════════════════
+                if (notifications) {
+                    const unread = notifications.filter(n => !n.is_read && !n.is_done).length;
+                    const badge = document.getElementById('bellBadge');
+                    if (badge) {
+                        badge.innerText = unread;
+                        badge.style.display = unread > 0 ? 'flex' : 'none';
+                    }
+                }
+
+                // ── Sync sidebar settings ──
+                syncSidebarSettings();
             }
-
-            // Fetch complaints from API
-            const complaints = await apiCall('complaints/', 'GET');
-            if (complaints) {
-                const total = complaints.length;
-                const pending = complaints.filter(c => c.status === 'Pending').length;
-                const progress = complaints.filter(c => c.status === 'In Progress').length;
-                const completed = complaints.filter(c => c.status === 'Resolved').length;
-
-                document.getElementById('totalCount').innerText = total;
-                document.getElementById('pendingCount').innerText = pending;
-                document.getElementById('progressCount').innerText = progress;
-                document.getElementById('completedCount').innerText = completed;
-
-                // Badge on "Manage Requests" quick action
-                document.getElementById('newBadge').innerText = pending;
-            }
-
-            // Fetch notices count from API
-            const notices = await apiCall('notices/', 'GET');
-            if (notices) {
-                document.getElementById('noticeBadge').innerText = notices.length;
-            }
-
-            // Sync Sidebar
-            syncSidebarSettings();
-        }
-    </script>
+        </script>
 
 </html>

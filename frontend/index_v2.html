@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HostelHub | Management Ecosystem</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #2b7cff;
+            --secondary: #00c6ff;
+            --role-color: #2b7cff;
+            --bg-color: #edf2fb;
+        }
+
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body { font-family: 'Outfit', sans-serif; height: 100vh; overflow: hidden; background: var(--bg-color); }
+
+        /* BACKGROUND SYSTEM */
+        #bg-canvas-wrap { position: fixed; top:0; left:0; width:100%; height:100%; z-index: -1; pointer-events: none; }
+        .ambient-layer { position: absolute; inset:0; background: 
+            radial-gradient(circle at 0% 0%, rgba(43,124,255,0.13), transparent 40%),
+            radial-gradient(circle at 100% 0%, rgba(0,200,255,0.11), transparent 40%),
+            radial-gradient(circle at 100% 100%, rgba(124,92,252,0.09), transparent 40%),
+            radial-gradient(circle at 0% 100%, rgba(6,182,212,0.10), transparent 40%);
+            animation: breathing 22s infinite alternate; }
+        @keyframes breathing { 0% { filter: brightness(1) hue-rotate(0deg); } 100% { filter: brightness(1.2) hue-rotate(15deg); } }
+
+        .hex-grid { position: absolute; inset:0; background-image: url("data:image/svg+xml,%3Csvg width='56' height='97' viewBox='0 0 56 97' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M28 0L56 16.16v32.33L28 64.66 0 48.49V16.16z' fill='none' stroke='rgba(43,124,255,0.09)' stroke-width='1'/%3E%3C/svg%3E"); animation: driftHex 100s linear infinite; }
+        @keyframes driftHex { from { background-position: 0 0; } to { background-position: 1000px 1000px; } }
+
+        .dot-matrix { position: absolute; inset:0; background: radial-gradient(rgba(79,110,247,0.18) 1.5px, transparent 1.5px); background-size: 28px 28px; animation: driftDots 60s linear infinite; }
+        @keyframes driftDots { from { background-position: 0 0; } to { background-position: -500px 500px; } }
+
+        canvas#circuit-canvas { position: absolute; inset:0; opacity: 0.14; }
+
+        .neon-beam { position: absolute; width:100%; height:200%; top:-50%; left:-100%; skewX: -20deg; filter: blur(28px); opacity:0.3; }
+        .beam-1 { background: linear-gradient(90deg, transparent, rgba(0,200,255,0.3), transparent); animation: sweep 13s infinite; }
+        .beam-2 { background: linear-gradient(90deg, transparent, rgba(124,92,252,0.3), transparent); animation: sweep 19s infinite 2s; }
+        .beam-3 { background: linear-gradient(90deg, transparent, rgba(6,182,212,0.3), transparent); animation: sweep 16s infinite 5s; }
+        @keyframes sweep { 0% { left: -150%; } 100% { left: 150%; } }
+
+        .scan-line { position: absolute; width:100%; height:2px; background: linear-gradient(90deg, transparent, #2b7cff, #00c6ff, #2b7cff, transparent); animation: scan 10s linear infinite; top:-5px; }
+        @keyframes scan { 0% { top: -2%; } 100% { top: 102%; } }
+
+        .ambient-orb { position: absolute; width: 40vw; height: 40vw; border-radius: 50%; filter: blur(80px); opacity: 0.3; animation: floatOrb var(--d) infinite alternate ease-in-out; }
+        @keyframes floatOrb { from { transform: translate(0,0); } to { transform: translate(100px, 100px); } }
+
+        .radar { position: absolute; border: 1px solid rgba(43,124,255,0.1); border-radius:50%; }
+        .radar-lg { width:420px; height:420px; bottom:-100px; right:-100px; opacity:0.22; }
+        .radar-sm { width:180px; height:180px; top:-50px; left:-50px; opacity:0.18; }
+        .radar-ring { position: absolute; border: 1px solid rgba(43,124,255,0.1); border-radius:50%; inset: calc(var(--i) * 20%); }
+        .radar-sweep { position: absolute; inset:0; border-radius:50%; background: conic-gradient(from 0deg, rgba(43,124,255,0.3), transparent 90deg); animation: sweepRadar var(--s) linear infinite; }
+        @keyframes sweepRadar { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
+        .tech-rail { position: absolute; width:3px; height:80vh; top:10vh; background: linear-gradient(transparent, #2b7cff, transparent); animation: pulseRail 4s infinite alternate; }
+        @keyframes pulseRail { from { opacity: 0.2; } to { opacity: 0.8; } }
+        .rail-ticks { position: absolute; list-style:none; }
+        .rail-ticks li { width:4px; height:1px; background:rgba(43,124,255,0.4); margin-bottom: 20px; }
+        .rail-ticks li.long { width:10px; background:#00c6ff; box-shadow: 0 0 5px #00c6ff; }
+
+        .system-node { position: absolute; border-radius: 50%; transform: scale(1); animation: pulseNode var(--d) infinite alternate; }
+        @keyframes pulseNode { to { transform: scale(2.8); opacity: 0.2; } }
+
+        .status-bar { position: fixed; top:0; width:100%; height:36px; display:flex; justify-content:space-between; align-items:center; padding: 0 20px; background: rgba(255,255,255,0.1); backdrop-filter: blur(5px); z-index:1001; font-size:10px; font-weight:700; color:#475569; }
+        .pill { padding: 4px 10px; background: rgba(255,255,255,0.5); border-radius:20px; display:flex; align-items:center; gap:6px; margin-right:10px; }
+        .led { width:6px; height:6px; border-radius:50%; animation: ledBlink 1.5s infinite alternate; }
+        @keyframes ledBlink { from { opacity: 0.3; } to { opacity: 1; filter: brightness(1.5); } }
+
+        .data-ticker { position: fixed; bottom:0; width:100%; height:30px; background: rgba(255,255,255,0.2); backdrop-filter: blur(5px); z-index:1001; overflow:hidden; display:flex; align-items:center; }
+        .ticker-strip { display: flex; white-space: nowrap; animation: tickerScroll 28s linear infinite; font-size:10px; font-weight:800; color:#64748b; letter-spacing:1px; }
+        .ticker-item { display:flex; align-items:center; margin-right:40px; }
+        .ticker-dot { width:4px; height:4px; border-radius:50%; background:#00c6ff; margin-right:8px; }
+        @keyframes tickerScroll { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+
+        /* SCENE MANAGEMENT */
+        .scene { position: fixed; inset:0; display:none; flex-direction:column; align-items:center; justify-content:center; z-index: 10; padding: 40px; }
+        .scene.active { display: flex; }
+
+        /* SCENE 1 - LANDING */
+        .landing-wrap { text-align: center; animation: landingReveal 1.2s cubic-bezier(0.23, 1, 0.32, 1); }
+        .logo-mark { width:90px; height:90px; border-radius:28px; background: linear-gradient(135deg, #1e3a8a, #2b7cff, #00c6ff); margin:0 auto 28px; display:flex; align-items:center; justify-content:center; position:relative; animation: logoGlow 3s infinite; }
+        .logo-mark svg { width:50px; height:50px; fill:none; stroke:white; stroke-width:1.8; }
+        .logo-mark::after { content:''; position:absolute; top:-100%; left:-100%; width:300%; height:300%; background: linear-gradient(45deg, transparent, rgba(255,255,255,0.4), transparent); transform: rotate(45deg); animation: sheen 4s infinite; }
+        @keyframes landingReveal { from { opacity:0; transform: translateY(30px); } to { opacity:1; transform: translateY(0); } }
+        @keyframes logoGlow { 0%, 100% { box-shadow: 0 0 0 0 rgba(43,124,255,0.4); } 50% { box-shadow: 0 0 40px 10px rgba(43,124,255,0.6); } }
+        @keyframes sheen { 0% { transform: translate(-100%, -100%) rotate(45deg); } 100% { transform: translate(100%, 100%) rotate(45deg); } }
+
+        .brand-title { font-size: 80px; font-weight:900; letter-spacing: -4px; background: linear-gradient(90deg, #1e3a8a, #312e81, #1e40af, #2b7cff, #1e40af, #312e81, #1e3a8a); background-size: 300%; -webkit-background-clip: text; -webkit-text-fill-color: transparent; animation: textShimmer 6s linear infinite; }
+        @keyframes textShimmer { to { background-position: 300%; } }
+        .tagline { font-size:13px; font-weight:700; letter-spacing:8px; color:#64748b; margin-top:10px; opacity:0; animation: fadeUp 0.6s forwards 0.3s; }
+        @keyframes fadeUp { to { opacity:1; transform: translateY(0); } }
+
+        .scene-overlay { position: fixed; inset:0; background: radial-gradient(circle, #1e3a8a, #2b7cff, #00c6ff); opacity:0; pointer-events:none; z-index:2000; transition: opacity 0.6s; }
+
+        /* SCENE 2 - LOGIN */
+        .login-wrap { max-width: 1200px; width:100%; display:flex; flex-direction:column; align-items:center; gap:48px; }
+        .portal-grid { display:flex; gap:30px; }
+        .portal-card { width:250px; background: rgba(255,255,255,0.7); backdrop-filter: blur(40px); border-radius:40px; padding: 50px 35px; text-align:center; cursor:pointer; transition: all 0.4s; border: 2px solid transparent; }
+        .portal-card:hover { transform: translateY(-15px); border-color: var(--c); box-shadow: 0 30px 60px rgba(0,0,0,0.1); }
+        .icon-wrap { width:80px; height:80px; background: #f1f5f9; border-radius:24px; display:flex; align-items:center; justify-content:center; margin:0 auto 30px; transition: 0.4s; }
+        .icon-wrap svg { width:40px; height:40px; stroke: var(--c); fill:none; stroke-width:2; transition: 0.4s; }
+        .portal-card:hover .icon-wrap { background: var(--c); transform: scale(1.1) rotate(-5deg); }
+        .portal-card:hover .icon-wrap svg { stroke: white; }
+        .portal-card h3 { font-size: 22px; font-weight:700; color:#1e293b; }
+
+        .auth-container { perspective: 1000px; display:none; }
+        .auth-card { width:440px; background: rgba(255,255,255,0.8); backdrop-filter: blur(40px); border-radius:40px; padding:50px; border: 2px solid rgba(var(--rc), 0.25); transform-style: preserve-3d; transition: transform 0.75s; }
+        .auth-card.flipped { transform: rotateY(180deg); }
+        .auth-front, .auth-back { backface-visibility: hidden; }
+        .auth-back { position: absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; transform: rotateY(180deg); }
+
+        .back-btn { display:inline-flex; align-items:center; gap:8px; font-size:11px; font-weight:800; letter-spacing:2px; color:#64748b; cursor:pointer; margin-bottom:30px; transition:0.3s; }
+        .back-btn:hover { color:var(--primary); transform: translateX(-5px); }
+        .field { margin-bottom: 20px; }
+        .field label { display:block; font-size:10px; font-weight:800; letter-spacing:2px; color:#64748b; margin-bottom:10px; }
+        .input-box { position:relative; }
+        .input-box input { width:100%; padding:18px 20px 18px 48px; background:white; border:2px solid #f1f5f9; border-radius:16px; font-family:inherit; transition:0.3s; }
+        .input-box input:focus { border-color: var(--primary); outline:none; }
+        .input-box svg { position:absolute; left:18px; top:50%; transform:translateY(-50%); width:20px; height:20px; stroke:#94a3b8; }
+        .login-btn { width:100%; height:60px; border-radius:18px; border: 2px solid var(--role-color); background:transparent; color:var(--role-color); font-weight:800; letter-spacing:3px; cursor:pointer; transition:0.4s; }
+        .login-btn:hover { background: var(--role-color); color:white; }
+
+        /* SCENE 3 - DASHBOARD */
+        .dashboard-view { position: fixed; inset:0; width:100%; height:100%; background: var(--role-bg); transform: translateY(100vh); transition: transform 0.65s cubic-bezier(0.16, 1, 0.3, 1); display:flex; flex-direction:column; z-index: 50; }
+        .dashboard-view.active { transform: translateY(0); }
+
+        .top-nav { height:60px; background: rgba(255,255,255,0.7); backdrop-filter: blur(20px); border-bottom:1px solid rgba(0,0,0,0.05); display:flex; align-items:center;  padding:0 30px; z-index:10; }
+        .nav-tabs { flex:1; display:flex; justify-content:center; gap:20px; }
+        .tab { padding:8px 20px; border-radius:12px; font-size:13px; font-weight:600; cursor:pointer; transition:0.3s; }
+        .tab.active { background: var(--role-color); color:white; }
+
+        .dash-body { flex:1; display:flex; }
+        .sidebar-dash { width:220px; background: rgba(255,255,255,0.5); backdrop-filter: blur(20px); border-right:1px solid rgba(0,0,0,0.05); padding:30px 20px; }
+        .main-space { flex:1; padding:40px; overflow-y:auto; }
+
+        .dash-grid { display:grid; grid-template-columns: repeat(4, 1fr); gap:25px; margin-top:30px; }
+        .stat-card { background:white; padding:25px; border-radius:24px; box-shadow: 0 10px 30px rgba(0,0,0,0.03); display:flex; align-items:center; gap:20px; }
+        .stat-icon { width:54px; height:54px; border-radius:14px; background: rgba(var(--rc), 0.1); color: var(--role-color); display:flex; align-items:center; justify-content:center; }
+        .stat-info h4 { font-size: 11px; color:#94a3b8; font-weight:700; margin-bottom:4px; }
+        .stat-info b { font-size: 24px; color:#1e293b; }
+
+        .panels-row { display:grid; grid-template-columns: 2fr 1fr; gap:25px; margin-top:25px; }
+        .panel { background:white; border-radius:24px; padding:30px; box-shadow: 0 10px 30px rgba(0,0,0,0.03); }
+        .panel h3 { font-size:18px; margin-bottom:20px; color:#1e293b; border-bottom:1px solid #f1f5f9; padding-bottom:15px; }
+
+        .list-item { display:flex; align-items:center; gap:15px; padding:15px 0; border-bottom:1px solid #f8fafc; }
+        .dot { width:8px; height:8px; border-radius:50%; }
+
+        .spinner { width:40px; height:40px; border:4px solid rgba(0,0,0,0.1); border-top-color: var(--role-color); border-radius:50%; animation: spin 0.8s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+
+<div id="bg-canvas-wrap">
+    <div class="ambient-layer"></div>
+    <div class="hex-grid"></div>
+    <div class="dot-matrix"></div>
+    <canvas id="circuit-canvas"></canvas>
+    <div class="neon-beam beam-1"></div>
+    <div class="neon-beam beam-2"></div>
+    <div class="neon-beam beam-3"></div>
+    <div class="scan-line"></div>
+    <div id="orb-container"></div>
+    <div class="radar radar-lg">
+        <div class="radar-ring" style="--i:0"></div><div class="radar-ring" style="--i:1"></div><div class="radar-ring" style="--i:2"></div><div class="radar-ring" style="--i:3"></div>
+        <div class="radar-sweep" style="--s:5s"></div>
+    </div>
+    <div class="radar radar-sm">
+        <div class="radar-ring" style="--i:0"></div><div class="radar-ring" style="--i:1"></div><div class="radar-ring" style="--i:2"></div><div class="radar-ring" style="--i:3"></div>
+        <div class="radar-sweep" style="--s:4s"></div>
+    </div>
+    <div class="tech-rail" style="left:12px;"></div>
+    <div class="tech-rail" style="right:12px;"></div>
+    <ul class="rail-ticks" style="left:12px; top:12vh;"></ul>
+    <div id="nodes-container"></div>
+    <div id="particles-container"></div>
+</div>
+
+<div class="status-bar">
+    <div style="display:flex;">
+        <div class="pill"><div class="led" style="background:#10b981"></div>SYSTEM ONLINE</div>
+        <div class="pill"><div class="led" style="background:#3b82f6"></div>SECURE CHANNEL</div>
+        <div class="pill"><div class="led" style="background:#06b6d4"></div>3 PORTALS ACTIVE</div>
+    </div>
+    <div style="display:flex;">
+        <div class="pill">HOSTELHUB v2.0</div>
+        <div id="live-clock" style="padding:4px 10px; background:rgba(255,255,255,0.5); border-radius:20px;">00:00:00</div>
+    </div>
+</div>
+
+<div class="data-ticker">
+    <div class="ticker-strip" id="ticker-strip"></div>
+</div>
+
+<div class="scene-overlay" id="scene-overlay"></div>
+
+<!-- SCENE 1 -->
+<div class="scene active" id="scene-landing">
+    <div class="landing-wrap">
+        <div class="logo-mark" id="landing-logo">
+            <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+        <h1 class="brand-title">HostelHub</h1>
+        <p class="tagline">MANAGEMENT ECOSYSTEM</p>
+    </div>
+</div>
+
+<!-- SCENE 2 -->
+<div class="scene" id="scene-login">
+    <div class="login-wrap">
+        <div style="text-align:center;">
+            <h1 class="brand-title" style="font-size:58px; letter-spacing:-2px;">HostelHub</h1>
+            <p class="tagline" style="margin-top:0;">MANAGEMENT ECOSYSTEM</p>
+        </div>
+        
+        <div class="portal-grid" id="portal-select">
+            <div class="portal-card" style="--c:#10b981" onclick="selectRole('student')">
+                <div class="icon-wrap"><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
+                <h3>Student</h3>
+                <p>Personal interface for reporting and tracking.</p>
+            </div>
+            <div class="portal-card" style="--c:#dc3545" onclick="selectRole('supervisor')">
+                <div class="icon-wrap"><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div>
+                <h3>Supervisor</h3>
+                <p>Advanced toolkit for operations and workers.</p>
+            </div>
+            <div class="portal-card" style="--c:#f59e0b" onclick="selectRole('admin')">
+                <div class="icon-wrap"><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M18 3a3 3 0 0 0-3 3v12a3 3 0 0 0 3 3 3 3 0 0 0 3-3 3 3 0 0 0-3-3H6a3 3 0 0 0-3 3 3 3 0 0 0 3 3 3 3 0 0 0 3-3V6a3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3h12a3 3 0 0 0 3-3 3 3 0 0 0-3-3z"/></svg></div>
+                <h3>Admin</h3>
+                <p>Global oversight and system settings.</p>
+            </div>
+        </div>
+
+        <div class="auth-container" id="auth-container">
+            <div class="auth-card" id="auth-card">
+                <div class="auth-front">
+                    <div class="back-btn" onclick="backToSelection()">BACK TO SELECTION</div>
+                    <h2 style="font-size:32px; color:#1e293b; margin-bottom:10px;" id="auth-role-title">Login</h2>
+                    <p style="font-size:14px; color:#64748b; margin-bottom:35px;">Verify your identity to access this portal.</p>
+                    <div class="field">
+                        <label>USERNAME</label>
+                        <div class="input-box">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                            <input type="text" id="user-in">
+                        </div>
+                    </div>
+                    <div class="field">
+                        <label>PASSWORD</label>
+                        <div class="input-box">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                            <input type="password" id="pass-in">
+                        </div>
+                    </div>
+                    <button class="login-btn" onclick="doLogin()">LOG IN</button>
+                </div>
+                <div class="auth-back">
+                    <div class="spinner"></div>
+                    <p style="margin-top:20px; font-weight:800; letter-spacing:2px; color:#64748b;">AUTHENTICATING</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- SCENE 3 -->
+<div class="dashboard-view" id="dashboard-scene">
+    <div class="top-nav">
+        <h2 class="brand-title" style="font-size:24px; letter-spacing:-1px;">HostelHub</h2>
+        <div class="nav-tabs" id="nav-tabs"></div>
+        <div style="display:flex; align-items:center; gap:15px;">
+            <div style="text-align:right;">
+                <div style="font-weight:700; font-size:13px;" id="dash-user">User Name</div>
+                <div style="font-size:10px; font-weight:800; color:var(--role-color); text-transform:uppercase;" id="dash-role-tag">Admin</div>
+            </div>
+            <div id="avatar" style="width:36px; height:36px; border-radius:50%; background:var(--role-color); display:flex; align-items:center; justify-content:center; color:white; font-weight:800; font-size:14px;">U</div>
+            <button onclick="signOut()" style="padding:8px 15px; border-radius:10px; border:none; background:#ef4444; color:white; font-weight:700; font-size:11px; cursor:pointer;">Sign Out</button>
+        </div>
+    </div>
+    <div class="dash-body">
+        <div class="sidebar-dash">
+            <h6 style="font-size:10px; font-weight:800; color:#94a3b8; letter-spacing:1px; margin-bottom:20px;">MAIN MENU</h6>
+            <div id="side-items"></div>
+        </div>
+        <div class="main-space">
+            <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+                <div>
+                    <h1 style="font-size:32px; color:#1e293b;" id="welcome-msg">Welcome back 👋</h1>
+                    <p style="color:#64748b; font-size:14px;">HostelHub Management Ecosystem</p>
+                </div>
+                <div style="background:rgba(255,255,255,0.7); padding:10px 20px; border-radius:12px; border:1px solid rgba(0,0,0,0.05);">
+                    <div style="font-size:10px; font-weight:800; color:#64748b;">LIVE SYSTEM CLOCK</div>
+                    <div id="dash-clock" style="font-size:18px; font-weight:800; color:var(--role-color);">00:00:00</div>
+                </div>
+            </div>
+
+            <div class="dash-grid" id="dash-stats"></div>
+
+            <div class="panels-row">
+                <div class="panel">
+                    <h3 id="panel-1-title">Recent Activity</h3>
+                    <div id="list-container"></div>
+                </div>
+                <div class="panel">
+                    <h3 id="panel-2-title">Utilization</h3>
+                    <div style="height:200px; display:flex; align-items:flex-end; gap:10px; padding:10px;">
+                        <div style="flex:1; background:var(--role-color); height:60%; border-radius:6px;"></div>
+                        <div style="flex:1; background:var(--role-color); height:85%; border-radius:6px; opacity:0.8"></div>
+                        <div style="flex:1; background:var(--role-color); height:40%; border-radius:6px; opacity:0.6"></div>
+                        <div style="flex:1; background:var(--role-color); height:70%; border-radius:6px; opacity:0.4"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // BG SYSTEMS
+    const orbContainer = document.getElementById('orb-container');
+    const colors = ['#3b82f6', '#06b6d4', '#8b5cf6', '#10b981', '#6366f1'];
+    for(let i=0; i<5; i++) {
+        const orb = document.createElement('div');
+        orb.className = 'ambient-orb';
+        orb.style.cssText = `--d:${28+i*4}s; top:${Math.random()*60}%; left:${Math.random()*60}%; background:radial-gradient(circle, ${colors[i]}, transparent 70%)`;
+        orbContainer.appendChild(orb);
+    }
+
+    const tickerStrip = document.getElementById('ticker-strip');
+    const items = ["PORTAL ACCESS READY", "ENCRYPTION ACTIVE", "3 PORTALS ONLINE", "SECURE SESSION", "DATA SYNC 100%", "MAINTENANCE MGMT", "HOSTEL OPERATIONS", "REAL-TIME TRACKING", "SYSTEM NOMINAL", "AUTH GATEWAY OPEN", "AES-256 ENCRYPTED", "UPTIME 99.97%"];
+    const content = items.map(t => `<div class="ticker-item"><div class="ticker-dot"></div>${t}</div>`).join('');
+    tickerStrip.innerHTML = content + content;
+
+    const ticks = document.querySelector('.rail-ticks');
+    for(let i=1; i<=22; i++) {
+        const li = document.createElement('li');
+        if(i % 5 === 0) li.className = 'long';
+        ticks.appendChild(li);
+    }
+
+    const nodeContainer = document.getElementById('nodes-container');
+    for(let i=0; i<20; i++) {
+        const node = document.createElement('div');
+        node.className = 'system-node';
+        node.style.cssText = `top:${Math.random()*100}%; left:${Math.random()*100}%; width:4px; height:4px; background:#2b7cff; box-shadow:0 0 10px #2b7cff; --d:${5+Math.random()*5}s; animation-delay:${Math.random()*5}s`;
+        nodeContainer.appendChild(node);
+    }
+
+    const particleContainer = document.getElementById('particles-container');
+    for(let i=0; i<22; i++) {
+        const p = document.createElement('div');
+        p.className = 'system-node';
+        const s = 1.5 + Math.random()*2.5;
+        p.style.cssText = `position:absolute; width:${s}px; height:${s}px; background:${colors[i%4]}; border-radius:50%; left:${Math.random()*100}%; top:100%; animation: rise ${14 + Math.random()*22}s linear infinite; animation-delay:${Math.random()*10}s; opacity:0;`;
+        particleContainer.appendChild(p);
+    }
+    const styleSheet = document.createElement("style");
+    styleSheet.innerText = '@keyframes rise { 0% { transform: translateY(0); opacity:0; } 10% { opacity:0.8; } 90% { opacity:0.8; } 100% { transform: translateY(-110vh); opacity:0; } }';
+    document.head.appendChild(styleSheet);
+
+    const canvas = document.getElementById('circuit-canvas');
+    const ctx = canvas.getContext('2d');
+    let traces = [];
+    function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+    window.onresize = resize; resize();
+
+    class Trace {
+        constructor() { this.reset(); }
+        reset() {
+            this.x = Math.random() * canvas.width; this.y = Math.random() * canvas.height;
+            this.segments = []; this.points = [{x:this.x, y:this.y}]; this.maxSeg = 3 + Math.random()*4;
+            this.color = ['#2b7cff', '#00c6ff', '#06b6d4', '#7c5cfc'][Math.floor(Math.random()*4)];
+            this.speed = 1 + Math.random()*2; this.dir = Math.random() > 0.5 ? 'h' : 'v';
+        }
+        update() {
+            let last = this.points[this.points.length-1];
+            if(this.dir === 'h') last.x += this.speed * (this.xDir || 1);
+            else last.y += this.speed * (this.yDir || 1);
+            if(Math.random() < 0.02 && this.points.length < this.maxSeg) {
+                this.dir = this.dir === 'h' ? 'v' : 'h';
+                this.xDir = Math.random() > 0.5 ? 1 : -1; this.yDir = Math.random() > 0.5 ? 1 : -1;
+                this.points.push({x:last.x, y:last.y});
+            }
+            if(last.x < -100 || last.x > canvas.width+100 || last.y < -100 || last.y > canvas.height+100) this.reset();
+        }
+        draw() {
+            ctx.beginPath(); ctx.strokeStyle = this.color; ctx.lineWidth = 1; ctx.moveTo(this.points[0].x, this.points[0].y);
+            for(let i=1; i<this.points.length; i++) ctx.lineTo(this.points[i].x, this.points[i].y);
+            ctx.stroke();
+            const head = this.points[this.points.length-1];
+            ctx.fillStyle = this.color; ctx.shadowBlur = 12; ctx.shadowColor = this.color;
+            ctx.beginPath(); ctx.arc(head.x, head.y, 2, 0, Math.PI*2); ctx.fill();
+            ctx.shadowBlur = 0;
+        }
+    }
+    for(let i=0; i<30; i++) traces.push(new Trace());
+    function anim() { ctx.clearRect(0,0,canvas.width,canvas.height); traces.forEach(t => { t.update(); t.draw(); }); requestAnimationFrame(anim); }
+    anim();
+
+    setInterval(() => {
+        const now = new Date();
+        const str = now.toLocaleTimeString('en-US', { hour12:false });
+        document.getElementById('live-clock').innerText = str;
+        const dclk = document.getElementById('dash-clock');
+        if(dclk) dclk.innerText = str;
+    }, 1000);
+
+    // LOGIC
+    let roleData = {
+        student: { color: '#10b981', rgb: '16, 185, 129', bg: '#f0fdf4', title: 'Student Login', u: 'student1', p: 'pass123', nav: ['Dashboard','My Requests','Notices','Messages'], side: [['home','Dashboard'],['file','New Request'],['clock','My Requests','3'],['bell','Notices','2'],['message-square','Messages','1'],['settings','Settings']], stats: [['Open Requests','3'],['Resolved','12'],['Unread Notices','2'],['Pending Review','1']] },
+        supervisor: { color: '#dc3545', rgb: '220, 53, 69', bg: '#fef2f2', title: 'Supervisor Hub', u: 'supervisor1', p: 'pass123', nav: ['Overview','Tasks','Workers','Reports'], side: [['activity','Overview'],['check-square','Tasks','7'],['users','Workers'],['tool','Assign Jobs'],['bar-chart','Reports'],['settings','Settings']], stats: [['Open Tasks','7'],['Workers Active','14'],['Completed Today','23'],['Overdue Tasks','3']] },
+        admin: { color: '#f59e0b', rgb: '245, 158, 11', bg: '#fffbeb', title: 'Admin Portal', u: 'admin', p: 'admin123', nav: ['Overview','Users','System','Analytics'], side: [['command','Overview'],['users','Manage Users'],['shield','Permissions'],['bar-chart','Analytics','New'],['settings','System Config'],['database','Logs']], stats: [['Total Users','842'],['System Uptime','99.9%'],['Total Requests','156'],['Critical Issues','4']] }
+    };
+    let currentRole = null;
+
+    setTimeout(() => {
+        const logo = document.getElementById('landing-logo');
+        logo.style.transition = '0.55s'; logo.style.transform = 'scale(4)'; logo.style.opacity = '0';
+        const overlay = document.getElementById('scene-overlay');
+        setTimeout(() => overlay.style.opacity = '1', 100);
+        setTimeout(() => {
+            document.getElementById('scene-landing').classList.remove('active');
+            const login = document.getElementById('scene-login');
+            login.classList.add('active'); login.style.opacity = '0'; login.style.transform = 'translateY(18px)';
+            setTimeout(() => { overlay.style.opacity = '0'; login.style.transition = '0.65s'; login.style.opacity = '1'; login.style.transform = 'translateY(0)'; }, 140);
+        }, 560);
+    }, 2800);
+
+    function selectRole(role) {
+        currentRole = role;
+        const config = roleData[role];
+        document.body.style.setProperty('--role-color', config.color);
+        document.body.style.setProperty('--rc', config.rgb);
+        document.getElementById('portal-select').style.display = 'none';
+        const auth = document.getElementById('auth-container');
+        auth.style.display = 'block';
+        document.getElementById('auth-role-title').innerText = config.title;
+        document.getElementById('user-in').value = config.u;
+        document.getElementById('pass-in').value = config.p;
+        document.getElementById('auth-card').style.borderColor = `rgba(${config.rgb}, 0.25)`;
+    }
+
+    function backToSelection() {
+        document.getElementById('portal-select').style.display = 'flex';
+        document.getElementById('auth-container').style.display = 'none';
+    }
+
+    function doLogin() {
+        const card = document.getElementById('auth-card');
+        card.classList.add('flipped');
+        setTimeout(() => {
+            const loginScene = document.getElementById('scene-login');
+            loginScene.style.transition = 'transform 0.9s cubic-bezier(0.16, 1, 0.3, 1)';
+            loginScene.style.transform = 'translateY(-110vh)';
+            document.getElementById('bg-canvas-wrap').style.transition = '0.5s';
+            document.getElementById('bg-canvas-wrap').style.opacity = '0';
+            setupDashboard();
+            const dash = document.getElementById('dashboard-scene');
+            dash.classList.add('active');
+        }, 900);
+    }
+
+    function setupDashboard() {
+        const config = roleData[currentRole];
+        document.getElementById('dashboard-scene').style.setProperty('--role-bg', config.bg);
+        document.getElementById('dash-user').innerText = config.u.charAt(0).toUpperCase() + config.u.slice(1);
+        document.getElementById('dash-role-tag').innerText = currentRole;
+        document.getElementById('avatar').innerText = config.u.charAt(0).toUpperCase();
+        document.getElementById('welcome-msg').innerText = `Welcome back, ${config.u.charAt(0).toUpperCase() + config.u.slice(1)} 👋`;
+
+        document.getElementById('nav-tabs').innerHTML = config.nav.map((t, i) => `<div class="tab ${i===0?'active':''}">${t}</div>`).join('');
+        document.getElementById('side-items').innerHTML = config.side.map(s => `
+            <div style="display:flex; align-items:center; gap:12px; padding:12px; border-radius:12px; font-size:14px; font-weight:600; cursor:pointer; margin-bottom:5px; ${s[1]==='Dashboard'||s[1]==='Overview'?'background:var(--role-color); color:white;':'color:#64748b;'}">
+                <span style="display:inline-block; width:16px;">▶</span> ${s[1]}
+                ${s[2] ? `<span style="margin-left:auto; background:#ef4444; color:white; font-size:10px; padding:2px 6px; border-radius:6px;">${s[2]}</span>` : ''}
+            </div>
+        `).join('');
+        
+        document.getElementById('dash-stats').innerHTML = config.stats.map(s => `
+            <div class="stat-card">
+                <div class="stat-icon">📈</div>
+                <div class="stat-info"><h4>${s[0].toUpperCase()}</h4><b>${s[1]}</b></div>
+            </div>
+        `).join('');
+
+        const items = ["Maintenance request approved", "New board notice issued", "Water tank cleaning tomorrow", "Security deposit received"];
+        document.getElementById('list-container').innerHTML = items.map(t => `
+            <div class="list-item">
+                <div class="dot" style="background:var(--role-color)"></div>
+                <div><div style="font-weight:700; font-size:14px; color:#1e293b;">${t}</div><div style="font-size:11px; color:#94a3b8;">Today · 12:45 PM</div></div>
+            </div>
+        `).join('');
+    }
+
+    function signOut() {
+        const dash = document.getElementById('dashboard-scene');
+        dash.classList.remove('active');
+        const loginScene = document.getElementById('scene-login');
+        loginScene.style.transform = 'translateY(0)';
+        document.getElementById('bg-canvas-wrap').style.opacity = '1';
+        document.getElementById('auth-card').classList.remove('flipped');
+        backToSelection();
+    }
+</script>
+</body>
+</html>
