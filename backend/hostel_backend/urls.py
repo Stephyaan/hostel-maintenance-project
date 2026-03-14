@@ -30,7 +30,8 @@ def serve_frontend(request, path):
 
 urlpatterns = [
     re_path(r'^(?P<path>.*\.html)$', serve_frontend),
-    path('admin/', admin.site.urls),
+    path('django-admin/', admin.site.urls),
     path('api/', include('api.urls')),
     path('', TemplateView.as_view(template_name='index.html')),
 ]
+
