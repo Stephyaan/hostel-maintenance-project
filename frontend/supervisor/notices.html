@@ -140,13 +140,28 @@
         <!-- Sidebar -->
         <div class="sidebar">
             <h2>HostelHub</h2>
-            <p style="color:#777;font-size:14px;">Supervisor Portal</p>
+            <p class="portal-label">Supervisor Portal</p>
             <ul>
-                <li onclick="location.href='/supervisor/dashboard.html'">Dashboard</li>
-                <li onclick="location.href='/supervisor/complaints.html'">Lifecycle Manager</li>
-                <li onclick="location.href='/supervisor/workers.html'">Manage Workers</li>
-                <li class="active" onclick="location.href='/supervisor/notices.html'">Notices</li>
-                <li onclick="location.href='/supervisor/reports.html'">Reports</li>
+                <li onclick="location.href='/supervisor/dashboard.html'">
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+                    Dashboard
+                </li>
+                <li onclick="location.href='/supervisor/complaints.html'">
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                    Lifecycle Manager
+                </li>
+                <li onclick="location.href='/supervisor/workers.html'">
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                    Manage Workers
+                </li>
+                <li class="active" onclick="location.href='/supervisor/notices.html'">
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+                    Notices
+                </li>
+                <li onclick="location.href='/supervisor/reports.html'">
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 20V10"/><path d="M12 20V4"/><path d="M6 20v-6"/></svg>
+                    Reports
+                </li>
             </ul>
             <div class="sidebar-logout" onclick="logout()">
                 Logout
@@ -156,8 +171,19 @@
         <!-- Content -->
         <div class="content">
 
-            <h2>Notice Board</h2>
-            <p style="color:#666;">Draft announcements and view posted notices</p>
+            <!-- Advanced Top Header -->
+            <div class="advanced-top">
+                <div id="welcomeArea">
+                    <h2 id="pageTitle">Notice Management</h2>
+                    <p id="pageSub">Draft official announcements and monitor publication approvals.</p>
+                </div>
+                <div style="display: flex; gap: 12px; align-items: center;">
+                    <button class="btn" onclick="openModal()" style="padding: 10px 20px; font-size: 14px; display: flex; align-items: center; gap: 8px;">
+                        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                        Create Announcement
+                    </button>
+                </div>
+            </div>
 
             <div class="notice-grid">
 

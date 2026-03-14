@@ -21,12 +21,22 @@ class AuthViewSet(viewsets.ViewSet):
     def login(self, request):
         username = request.data.get('username')
         password = request.data.get('password')
-        user = authenticate(username=username, password=password)
-        if user:
-            token, created = Token.objects.get_or_create(user=user)
-            serializer = UserSerializer(user)
-            return Response({'token': token.key, 'user': serializer.data})
-        return Response({'error': 'Invalid Credentials'}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            user = User.objects.get(username=username)
+        except User.DoesNotExist:
+            return Response({'error': 'Invalid credentials'}, status=400)
+
+        if not user.check_password(password):
+            return Response({'error': 'Invalid credentials'}, status=400)
+
+        token, created = Token.objects.get_or_create(user=user)
+        serializer = UserSerializer(user)
+
+        return Response({
+            'token': token.key,
+            'user': serializer.data
+        })
 
     @action(detail=False, methods=['post'])
     def logout(self, request):

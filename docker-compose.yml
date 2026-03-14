@@ -2,20 +2,40 @@ version: '3.8'
 
 services:
   backend:
-    build: ./backend
+    build: 
+      context: ./backend
+      dockerfile: Dockerfile
     container_name: hostel_backend
     volumes:
       - ./backend:/app
+      - /app/venv  # Prevents local venv from being used in container
     ports:
       - "8000:8000"
     environment:
       - DEBUG=1
-    command: python manage.py runserver 0.0.0.0:8000
+      - PYTHONUNBUFFERED=1
+    networks:
+      - hostel_net
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
   frontend:
-    build: ./frontend
+    build: 
+      context: ./frontend
+      dockerfile: Dockerfile
     container_name: hostel_frontend
     ports:
       - "8081:80"
     depends_on:
-      - backend
+      backend:
+        condition: service_started
+    networks:
+      - hostel_net
+
+networks:
+  hostel_net:
+    driver: bridge
+

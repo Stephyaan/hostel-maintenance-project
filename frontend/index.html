@@ -92,7 +92,10 @@
         .brand-title {
             font-size: 80px; font-weight: 900; letter-spacing: -4px;
             background: linear-gradient(90deg, #1a365d, #4338ca, #2563eb, #0ea5e9, #2563eb, #4338ca, #1a365d);
-            background-size: 300%; -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            background-size: 300%;
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
             animation: textShimmer 6s linear infinite;
         }
         @keyframes textShimmer { to { background-position: 300% center; } }
@@ -219,7 +222,7 @@
                 <div class="auth-card" id="auth-card">
                     <div class="auth-front">
                         <div class="back-link" onclick="exitPortal()">
-                            <svg data-lucide="chevron-left" style="width:14px; stroke:currentColor; stroke-width:3; transform:translateY(-1px);"></svg>
+                            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
                             BACK TO SELECTION
                         </div>
                         <h2 id="auth-title" style="font-size:32px; color:#1e293b; margin-bottom:10px;">Login</h2>

@@ -12,17 +12,28 @@ WORKDIR /app
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
     libpq-dev \
+    curl \
     && rm -rf /var/lib/apt/lists/*
 
-# Install dependencies
-COPY requirements.txt /app/
-RUN pip install --upgrade pip && pip install -r requirements.txt
 
-# Copy the current directory contents into the container at /app
-COPY . /app/
+# Install dependencies separately to leverage Docker cache
+COPY requirements.txt .
+RUN pip install --no-cache-dir --upgrade pip && \
+    pip install --no-cache-dir -r requirements.txt
+
+# Create a non-root user for security
+RUN useradd -m appuser && chown -R appuser:appuser /app
+
+# Copy the rest of the application code
+COPY --chown=appuser:appuser . .
+
+# Switch to the non-root user
+USER appuser
 
 # Expose port 8000
 EXPOSE 8000
 
-# Command to run the application
+# Command to run the application using Gunicorn for a more "premium" production-ready feel
+# For development, we can still use runserver if overridden in compose
 CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]
+

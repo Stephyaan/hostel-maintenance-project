@@ -2,6 +2,56 @@ const API_URL = "/api/";
 
 console.log('✅ HostelHub API Helper v1.2.1 Loaded');
 
+// --- Global Design & Personalization ---
+// --- Global Design & Personalization ---
+function updatePortalClock() {
+    const timeEl = document.getElementById('currentTime');
+    const dateEl = document.getElementById('currentDate');
+    if (!timeEl || !dateEl) return;
+
+    const now = new Date();
+    timeEl.innerText = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    
+    const options = { weekday: 'short', day: '2-digit', month: 'short', year: 'numeric' };
+    dateEl.innerText = now.toLocaleDateString('en-US', options).toUpperCase();
+}
+
+// Initial update and sync
+setInterval(updatePortalClock, 1000);
+
+function personalizeDashboard() {
+    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    const welcomeTitle = document.getElementById('welcomeTitle');
+    const welcomeSub = document.getElementById('welcomeSub');
+
+    if (!welcomeTitle) return;
+
+    const role = user.role || 'Guest';
+    let icon = '👋';
+    if (role === 'admin') icon = '🛡️';
+    else if (role === 'supervisor') icon = '👷';
+
+    // Set Greeting
+    const name = user.first_name || user.username || 'User';
+    welcomeTitle.innerHTML = `Hello, ${name} <span class="wave">${icon}</span>`;
+
+    // Set Subtext if it exists
+    if (welcomeSub) {
+        if (role === 'student' && user.block && user.room_number) {
+            welcomeSub.innerText = `Block ${user.block} · Room ${user.room_number}`;
+        } else if (role === 'supervisor') {
+            welcomeSub.innerText = `Optimizing hostel maintenance and worker performance.`;
+        } else if (role === 'admin') {
+            welcomeSub.innerText = `Full oversight of hostel infrastructure and configurations.`;
+        }
+    }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    updatePortalClock();
+    personalizeDashboard();
+});
+
 // Generic API Fetcher
 async function apiCall(endpoint, method = "GET", data = null) {
     const token = localStorage.getItem("token"); // Assuming we'll store JWT token here

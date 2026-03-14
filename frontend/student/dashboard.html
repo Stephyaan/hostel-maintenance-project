@@ -139,29 +139,47 @@
             <p class="portal-label">Student Portal</p>
 
             <ul>
-                <li class="active" onclick="location.href='/student/dashboard.html'">Dashboard</li>
-                <li onclick="location.href='/student/complaints.html'">My Complaints</li>
-                <li onclick="location.href='/student/request_resources.html'">Request Resources</li>
-                <li onclick="location.href='/student/notices.html'">Notices</li>
-                <li onclick="location.href='/student/emergency.html'">Emergency</li>
+                <li class="active" onclick="location.href='/student/dashboard.html'">
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+                    Dashboard
+                </li>
+                <li onclick="location.href='/student/complaints.html'">
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                    My Complaints
+                </li>
+                <li onclick="location.href='/student/request_resources.html'">
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 8V6a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v2"/><path d="M21 12v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-6"/><path d="M12 12h.01"/></svg>
+                    Request Resources
+                </li>
+                <li onclick="location.href='/student/notices.html'">
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+                    Notices
+                </li>
+                <li onclick="location.href='/student/emergency.html'">
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                    Emergency
+                </li>
             </ul>
             <div class="sidebar-logout" onclick="logout()">
                 Logout
             </div>
         </div>
 
-
-
         <!-- Main Content -->
         <div class="content">
 
-            <!-- Top Header -->
-            <div class="topbar">
-                <div>
-                    <h2 id="studentWelcome">Welcome back 👋</h2>
-                    <p id="studentInfo" style="color:#666;"></p>
+            <!-- Advanced Top Header -->
+            <div class="advanced-top">
+                <div id="welcomeArea">
+                    <h2 id="welcomeTitle">Hello, Guest 👋</h2>
+                    <p id="welcomeSub">Your personal portal for a comfortable stay.</p>
                 </div>
-
+                <div style="display: flex; gap: 12px; align-items: center;">
+                    <div id="portalClock" style="text-align: right; margin-right: 15px; border-right: 1px solid var(--border-soft); padding-right: 15px;">
+                        <div id="currentTime" style="font-weight: 800; color: var(--text-main); font-size: 16px;">--:--</div>
+                        <div id="currentDate" style="font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px;">-- --- ----</div>
+                    </div>
+                </div>
             </div>
 
             <!-- SUMMARY BOXES -->
@@ -260,17 +278,6 @@
 
     <script>
         window.onload = async function () {
-            // Show logged-in user info
-            const user = JSON.parse(localStorage.getItem('user') || '{}');
-            if (user.first_name || user.username) {
-                document.getElementById('studentWelcome').innerText = `Welcome back, ${user.first_name || user.username} 👋`;
-                if (user.block && user.room_number) {
-                    document.getElementById('studentInfo').innerText = `Block ${user.block} · Room ${user.room_number}`;
-                } else {
-                    document.getElementById('studentInfo').innerText = `Role: ${user.role || 'Student'}`;
-                }
-            }
-
             // Fetch data and settings
             const [complaints, notices, resources, settings] = await Promise.all([
                 apiCall('complaints/', 'GET'),

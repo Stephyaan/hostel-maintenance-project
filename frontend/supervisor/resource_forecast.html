@@ -17,7 +17,6 @@
             --slate-600: #475569;
             --slate-700: #334155;
         }
-
         .container {
             display: flex;
             gap: 24px;
@@ -28,72 +27,74 @@
         .list-panel {
             flex: 1;
             background: #fff;
-            border-radius: 16px;
-            padding: 24px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: var(--shadow-sm);
             display: flex;
             flex-direction: column;
             overflow: hidden;
-            border: 1px solid var(--slate-100);
+            border: 1px solid var(--border-soft);
         }
 
         .detail-panel {
             width: 500px;
             background: #fff;
-            border-radius: 16px;
-            padding: 24px;
-            box-shadow: 0 4px 25px rgba(0, 0, 0, 0.06);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: var(--shadow-md);
             display: flex;
             flex-direction: column;
             overflow-y: auto;
-            border: 1px solid var(--slate-100);
+            border: 1px solid var(--border-soft);
         }
 
         .forecast-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 15px;
+            gap: 20px;
             margin-bottom: 25px;
         }
 
         .forecast-card {
             background: #fff;
-            border: 1px solid var(--slate-100);
-            padding: 20px;
-            border-radius: 12px;
+            border: 1px solid var(--border-soft);
+            padding: 24px;
+            border-radius: 16px;
             cursor: pointer;
-            transition: all 0.2s;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             position: relative;
             overflow: hidden;
+            box-shadow: var(--shadow-sm);
         }
 
         .forecast-card:hover {
-            transform: translateY(-2px);
+            transform: translateY(-5px);
             border-color: var(--primary);
-            box-shadow: 0 4px 12px rgba(43, 124, 255, 0.08);
+            box-shadow: var(--shadow-md);
         }
 
         .forecast-card.active {
             border-color: var(--primary);
-            background: #f0f7ff;
-            box-shadow: 0 4px 15px rgba(43, 124, 255, 0.1);
+            background: var(--primary-light);
+            box-shadow: 0 10px 25px rgba(43, 124, 255, 0.1);
         }
 
         .stock-level {
-            height: 4px;
+            height: 6px;
             background: var(--slate-100);
-            border-radius: 2px;
-            margin-top: 10px;
+            border-radius: 3px;
+            margin-top: 15px;
         }
 
         .stock-fill {
             height: 100%;
-            border-radius: 2px;
+            border-radius: 3px;
+            transition: width 1s ease-out;
         }
 
         .request-item {
-            padding: 15px;
-            border-bottom: 1px solid var(--slate-100);
+            padding: 18px;
+            border-bottom: 1px solid var(--border-soft);
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -105,30 +106,35 @@
             display: flex;
             align-items: center;
             gap: 8px;
-            background: var(--slate-100);
-            border: none;
-            padding: 8px 16px;
-            border-radius: 8px;
-            color: var(--slate-700);
+            background: white;
+            border: 1px solid var(--border-soft);
+            padding: 10px 20px;
+            border-radius: 12px;
+            color: var(--text-main);
             font-weight: 700;
             cursor: pointer;
             transition: 0.2s;
+            box-shadow: var(--shadow-sm);
         }
 
-        .back-btn:hover { background: var(--slate-200); }
+        .back-btn:hover { 
+            background: var(--slate-50);
+            transform: translateX(-3px);
+        }
 
         .stat-badge {
             font-size: 10px;
             font-weight: 800;
-            padding: 3px 8px;
-            border-radius: 4px;
+            padding: 4px 10px;
+            border-radius: 6px;
             text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
 
         .empty-state {
             text-align: center;
             padding: 80px 20px;
-            color: var(--slate-600);
+            color: var(--text-muted);
         }
     </style>
 </head>
@@ -136,13 +142,28 @@
     <div class="app supervisor-app">
         <div class="sidebar">
             <h2>HostelHub</h2>
-            <p style="color:#777;font-size:14px;">Supervisor Portal</p>
+            <p class="portal-label">Supervisor Portal</p>
             <ul>
-                <li onclick="location.href='/supervisor/dashboard.html'">Dashboard</li>
-                <li onclick="location.href='/supervisor/complaints.html'">Lifecycle Manager</li>
-                <li onclick="location.href='/supervisor/workers.html'">Manage Workers</li>
-                <li onclick="location.href='/supervisor/notices.html'">Notices</li>
-                <li class="active" onclick="location.href='/supervisor/reports.html'">Reports</li>
+                <li onclick="location.href='/supervisor/dashboard.html'">
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+                    Dashboard
+                </li>
+                <li onclick="location.href='/supervisor/complaints.html'">
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                    Lifecycle Manager
+                </li>
+                <li onclick="location.href='/supervisor/workers.html'">
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                    Manage Workers
+                </li>
+                <li onclick="location.href='/supervisor/notices.html'">
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+                    Notices
+                </li>
+                <li class="active" onclick="location.href='/supervisor/reports.html'">
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 20V10"/><path d="M12 20V4"/><path d="M6 20v-6"/></svg>
+                    Reports
+                </li>
             </ul>
         </div>
 

@@ -10,29 +10,72 @@
     <style>
         .resource-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-            gap: 15px;
-            margin-bottom: 20px;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
         }
 
         .resource-card {
-            border: 1px solid #dbe4ff;
-            border-radius: 10px;
-            padding: 14px;
+            border: 1px solid var(--border-soft);
+            border-radius: 16px;
+            padding: 24px;
             cursor: pointer;
             background: #ffffff;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+            box-shadow: var(--shadow-sm);
         }
 
         .resource-card:hover {
-            background: #f5f9ff;
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-md);
+            border-color: var(--primary);
         }
 
-        .info-box {
-            background: #e7f3ff;
-            padding: 14px;
-            border-radius: 8px;
-            border-left: 6px solid #2b7cff;
-            margin-bottom: 20px;
+        .resource-card.selected {
+            background: var(--primary-light);
+            border-color: var(--primary);
+            box-shadow: 0 10px 25px rgba(43, 124, 255, 0.15);
+        }
+
+        .resource-card.selected::after {
+            content: '✓';
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: var(--primary);
+            color: white;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            font-weight: 800;
+        }
+
+        .res-icon {
+            font-size: 32px;
+            margin-bottom: 12px;
+            display: block;
+        }
+
+        .resource-card b {
+            display: block;
+            font-size: 16px;
+            color: var(--text-main);
+            margin-bottom: 4px;
+        }
+
+        .resource-card small {
+            color: var(--text-muted);
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 10px;
+            letter-spacing: 0.5px;
         }
 
         .urgency {
@@ -43,16 +86,35 @@
 
         .urgency div {
             flex: 1;
-            padding: 12px;
-            border-radius: 8px;
-            border: 1px solid #ccc;
+            padding: 15px;
+            border-radius: 12px;
+            border: 1px solid var(--border-soft);
             text-align: center;
             cursor: pointer;
+            transition: all 0.2s;
+            background: white;
+        }
+
+        .urgency div:hover {
+            border-color: var(--primary);
+            background: var(--primary-light);
         }
 
         .urgency .active {
-            background: #e6f9fb;
-            border-color: #17a2b8;
+            background: var(--primary-light);
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+
+        .urgency b {
+            display: block;
+            font-size: 14px;
+            margin-bottom: 2px;
+        }
+
+        .urgency small {
+            font-size: 11px;
+            opacity: 0.8;
         }
     </style>
 </head>
@@ -67,11 +129,26 @@
             <p class="portal-label">Student Portal</p>
 
             <ul>
-                <li onclick="location.href='/student/dashboard.html'">Dashboard</li>
-                <li onclick="location.href='/student/complaints.html'">My Complaints</li>
-                <li class="active">Request Resources</li>
-                <li onclick="location.href='/student/notices.html'">Notices</li>
-                <li onclick="location.href='/student/emergency.html'">Emergency</li>
+                <li onclick="location.href='/student/dashboard.html'">
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+                    Dashboard
+                </li>
+                <li onclick="location.href='/student/complaints.html'">
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                    My Complaints
+                </li>
+                <li class="active" onclick="location.href='/student/request_resources.html'">
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 8V6a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v2"/><path d="M21 12v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-6"/><path d="M12 12h.01"/></svg>
+                    Request Resources
+                </li>
+                <li onclick="location.href='/student/notices.html'">
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+                    Notices
+                </li>
+                <li onclick="location.href='/student/emergency.html'">
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                    Emergency
+                </li>
             </ul>
             <div class="sidebar-logout" onclick="logout()">
                 Logout
@@ -83,50 +160,94 @@
         <!-- Content -->
         <div class="content">
 
-            <h2>Request Hostel Resources</h2>
-            <p style="color:#666;">Request furniture, utilities, or other resources for your room</p>
-
-            <div class="info-box">
-                <b>How it works</b><br>
-                Submit your request and the admin team will review it. You’ll be notified once approved.
-            </div>
-
-            <h4>Select Resource</h4>
-
-            <div class="resource-grid">
-                <div class="resource-card"><b>Mattress Replacement</b><br><small>Furniture</small></div>
-                <div class="resource-card"><b>Desk Lamp</b><br><small>Electrical</small></div>
-                <div class="resource-card"><b>Study Chair</b><br><small>Furniture</small></div>
-                <div class="resource-card"><b>Dustbin</b><br><small>Utilities</small></div>
-                <div class="resource-card"><b>Curtains</b><br><small>Utilities</small></div>
-                <div class="resource-card"><b>Clothes Hanger</b><br><small>Utilities</small></div>
-            </div>
-
-            <label>Quantity</label>
-            <input type="number" value="1">
-            <small>Maximum 5 items per request</small>
-
-            <h4 style="margin-top:20px;">Urgency Level</h4>
-            <div class="urgency">
-                <div class="active" onclick="selectUrgency(this, 'Normal')">
-                    <b>Normal</b><br>
-                    <small>7–10 days</small>
+            <!-- Advanced Top Header -->
+            <div class="advanced-top">
+                <div id="welcomeArea">
+                    <h2 id="pageTitle">Resource Management</h2>
+                    <p id="pageSub">Request furniture and utilities for your accommodation.</p>
                 </div>
-                <div onclick="selectUrgency(this, 'Urgent')">
-                    <b>Urgent</b><br>
-                    <small>2–3 days</small>
+                <div style="display: flex; gap: 15px; align-items: center;">
+                    <div class="info-tag" style="background: #eff6ff; color: #2563eb; padding: 8px 16px; border-radius: 20px; font-size: 13px; font-weight: 700; border: 1px solid #dbeafe;">
+                        Max 5 items
+                    </div>
                 </div>
             </div>
 
-            <label>Reason for Request</label>
-            <textarea placeholder="Explain why you need this resource..."></textarea>
+            <div class="info-box" style="background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%); border: none; padding: 20px; border-radius: 18px; color: #1e40af; display: flex; align-items: center; gap: 15px; margin-bottom: 30px;">
+                <div style="font-size: 24px;">ℹ️</div>
+                <div>
+                    <b style="font-size: 16px; display: block; margin-bottom: 2px;">Resource Allocation Policy</b>
+                    <span style="font-size: 14px; opacity: 0.9;">Requests are reviewed by administration within 48 hours. Items will be delivered to your room upon approval.</span>
+                </div>
+            </div>
 
-            <button class="btn" style="width:100%; margin-top: 10px;" onclick="submitRequest()">Submit Request</button>
+            <div class="grid-2">
+                <div class="card">
+                    <h4 style="margin-bottom: 20px; display: flex; align-items: center; gap: 10px;">
+                        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+                        Select Resource
+                    </h4>
+                    <div class="resource-grid">
+                        <div class="resource-card">
+                            <span class="res-icon">🛏️</span>
+                            <b>Mattress</b>
+                            <small>Furniture</small>
+                        </div>
+                        <div class="resource-card">
+                            <span class="res-icon">💡</span>
+                            <b>Desk Lamp</b>
+                            <small>Electrical</small>
+                        </div>
+                        <div class="resource-card">
+                            <span class="res-icon">🪑</span>
+                            <b>Study Chair</b>
+                            <small>Furniture</small>
+                        </div>
+                        <div class="resource-card">
+                            <span class="res-icon">🗑️</span>
+                            <b>Dustbin</b>
+                            <small>Utilities</small>
+                        </div>
+                    </div>
 
-            <div class="card" style="margin-top:25px;">
-                <h3>My Recent Requests</h3>
-                <div id="recentRequestsList" style="margin-top: 15px;">
-                    <!-- Requests will be loaded here -->
+                    <div style="margin-top: 25px;">
+                        <label style="font-size: 11px; font-weight: 800; color: var(--text-muted); letter-spacing: 1px; text-transform: uppercase;">Quantity</label>
+                        <input type="number" value="1" min="1" max="5" style="margin-top: 8px; border-radius: 12px; height: 50px;">
+                    </div>
+
+                    <div style="margin-top: 25px;">
+                        <label style="font-size: 11px; font-weight: 800; color: var(--text-muted); letter-spacing: 1px; text-transform: uppercase;">Urgency Level</label>
+                        <div class="urgency" style="margin-top: 8px;">
+                            <div class="active" onclick="selectUrgency(this, 'Normal')">
+                                <b>Normal</b>
+                                <small>7–10 days</small>
+                            </div>
+                            <div onclick="selectUrgency(this, 'Urgent')">
+                                <b>Urgent</b>
+                                <small>2–3 days</small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style="margin-top: 25px;">
+                        <label style="font-size: 11px; font-weight: 800; color: var(--text-muted); letter-spacing: 1px; text-transform: uppercase;">Reason for Request</label>
+                        <textarea placeholder="e.g. Current chair is broken, need a replacement..." style="margin-top: 8px; min-height: 120px; border-radius: 16px;"></textarea>
+                    </div>
+
+                    <button class="btn" style="width:100%; margin-top: 25px; height: 55px; font-size: 16px; border-radius: 16px; background: var(--primary); color: white; border: none; font-weight: 800; cursor: pointer; transition: 0.3s;" onclick="submitRequest()">Submit Allocation Request</button>
+                </div>
+
+                <div class="card">
+                    <h4 style="margin-bottom: 20px; display: flex; align-items: center; gap: 10px;">
+                        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                        Submission History
+                    </h4>
+                    <div id="recentRequestsList">
+                        <!-- Requests will be loaded here -->
+                        <div style="text-align:center; padding: 40px 0;">
+                            <p style="color:#94a3b8; font-style:italic;">Syncing request records...</p>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -289,17 +410,10 @@
         window.onload = async () => {
             syncSidebarSettings();
 
-            // Add click listeners to resource cards
             document.querySelectorAll('.resource-card').forEach(card => {
                 card.onclick = () => {
-                    document.querySelectorAll('.resource-card').forEach(c => {
-                        c.classList.remove('selected');
-                        c.style.background = '#ffffff';
-                        c.style.borderColor = '#dbe4ff';
-                    });
+                    document.querySelectorAll('.resource-card').forEach(c => c.classList.remove('selected'));
                     card.classList.add('selected');
-                    card.style.background = '#e6f0ff';
-                    card.style.borderColor = '#2b7cff';
                 };
             });
 

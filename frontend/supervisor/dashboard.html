@@ -312,13 +312,28 @@
         <!-- Sidebar -->
         <div class="sidebar">
             <h2>HostelHub</h2>
-            <p style="color:#777;font-size:14px;">Supervisor Portal</p>
+            <p class="portal-label">Supervisor Portal</p>
             <ul>
-                <li class="active" onclick="location.href='/supervisor/dashboard.html'">Dashboard</li>
-                <li onclick="location.href='/supervisor/complaints.html'">Lifecycle Manager</li>
-                <li onclick="location.href='/supervisor/workers.html'">Manage Workers</li>
-                <li onclick="location.href='/supervisor/notices.html'">Notices</li>
-                <li onclick="location.href='/supervisor/reports.html'">Reports</li>
+                <li class="active" onclick="location.href='/supervisor/dashboard.html'">
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+                    Dashboard
+                </li>
+                <li onclick="location.href='/supervisor/complaints.html'">
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                    Lifecycle Manager
+                </li>
+                <li onclick="location.href='/supervisor/workers.html'">
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                    Manage Workers
+                </li>
+                <li onclick="location.href='/supervisor/notices.html'">
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+                    Notices
+                </li>
+                <li onclick="location.href='/supervisor/reports.html'">
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 20V10"/><path d="M12 20V4"/><path d="M6 20v-6"/></svg>
+                    Reports
+                </li>
             </ul>
             <div class="sidebar-logout" onclick="logout()">
                 Logout
@@ -328,16 +343,21 @@
         <!-- Content -->
         <div class="content">
 
-            <!-- Header -->
-            <div class="topbar">
-                <div>
-                    <h2 id="welcomeTitle">Maintenance Supervisor 👷</h2>
-                    <p style="color:#666;" id="welcomeSub">Today's task overview</p>
+            <!-- Advanced Top Header -->
+            <div class="advanced-top">
+                <div id="welcomeArea">
+                    <h2 id="welcomeTitle">Hello, Supervisor 👷</h2>
+                    <p id="welcomeSub">Optimizing hostel maintenance and worker performance.</p>
                 </div>
-                <div class="notif-bell" onclick="location.href='/supervisor/maintenance_alerts.html'"
-                    title="Go to Maintenance Alerts" style="cursor:pointer;" id="notifBell">
-                    🔔 <span style="font-size:13px;font-weight:600;color:#1e293b;">Maintenance Alerts</span>
-                    <span class="bell-badge" id="bellBadge">0</span>
+                <div style="display: flex; gap: 20px; align-items: center;">
+                    <div id="portalClock" style="text-align: right; margin-right: 15px; border-right: 1px solid var(--border-soft); padding-right: 15px;">
+                        <div id="currentTime" style="font-weight: 800; color: var(--text-main); font-size: 16px;">--:--</div>
+                        <div id="currentDate" style="font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px;">-- --- ----</div>
+                    </div>
+                    <div class="notif-bell" onclick="location.href='/supervisor/maintenance_alerts.html'" title="Go to Maintenance Alerts" id="notifBell" style="background: white; padding: 10px 15px; border-radius: 12px; border: 1px solid var(--border-soft); box-shadow: var(--shadow-sm); cursor: pointer; position: relative;">
+                        <span style="font-size: 20px;">🔔</span>
+                        <span class="bell-badge" id="bellBadge" style="position: absolute; top: -5px; right: -5px; background: #ef4444; color: white; border-radius: 50%; width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 800; border: 2px solid white;">0</span>
+                    </div>
                 </div>
             </div>
 
@@ -467,13 +487,6 @@
 
         <script>
             window.onload = async function () {
-                // ── 1. Show logged-in supervisor name ──
-                const user = JSON.parse(localStorage.getItem('user') || '{}');
-                if (user.username) {
-                    document.getElementById('welcomeTitle').innerText =
-                        `${user.first_name || user.username} 👷`;
-                }
-
                 // ── 2. Fetch ALL data in parallel ──
                 const [complaints, workers, notices, schedules, categories, notifications, health] = await Promise.all([
                     apiCall('complaints/', 'GET'),
