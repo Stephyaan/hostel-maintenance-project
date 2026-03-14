@@ -8,7 +8,9 @@ services:
     container_name: hostel_backend
     volumes:
       - ./backend:/app
-      - /app/venv  # Prevents local venv from being used in container
+      - ./frontend:/frontend  # Added to allow Django to find templates and static files
+      - /app/venv
+
     ports:
       - "8000:8000"
     environment:
